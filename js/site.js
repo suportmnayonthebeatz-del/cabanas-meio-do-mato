@@ -203,7 +203,10 @@
       const cache = new Map();     // quadro → ImageBitmap
       const prontos = new Set(), pendentes = [];
       const grupoDe = i => { let g = 0; while (g + 1 < inicios.length && inicios[g + 1] <= i) g++; return g; };
-      const quer = g => { const c = grupoDe(alvo); return g === c || g === c + dir || g === c + 2 * dir || g === c - dir; };
+      // aparelhos com até 4 GB guardam 3 grupos prontos (36 quadros); os demais, 4 grupos
+      const pouca = params.has('pouca') || (navigator.deviceMemory || 8) <= 4;
+      const vizinhos = c => (pouca ? [c, c + dir, c - dir] : [c, c + dir, c + 2 * dir, c - dir]);
+      const quer = g => vizinhos(grupoDe(alvo)).includes(g);
 
       // baixa em pedaços: cada grupo de quadros pode ser decodificado assim que os bytes dele chegam
       async function baixa(url, total, aviso) {
@@ -247,7 +250,7 @@
       async function bombeia() {
         if (ocupado || morto || !dec) return;
         const c = grupoDe(alvo);
-        const fila = [c, c + dir, c + 2 * dir, c - dir].filter(g => g >= 0 && g < inicios.length && !prontos.has(g) && disponivel(g));
+        const fila = vizinhos(c).filter(g => g >= 0 && g < inicios.length && !prontos.has(g) && disponivel(g));
         if (!fila.length) return;
         try { await decodifica(fila[0]); } catch (e) { return falha(e); }
         bombeia();
