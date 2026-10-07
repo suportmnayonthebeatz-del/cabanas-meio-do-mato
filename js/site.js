@@ -11,6 +11,7 @@
   const raiz = document.documentElement;
   const params = new URLSearchParams(location.search);
   const reduz = !params.has('movimento') && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const toque = matchMedia('(hover: none), (pointer: coarse)').matches;
   const clamp = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
   const suave = x => x * x * (3 - 2 * x);
   const espera = ms => new Promise(r => setTimeout(r, ms));
@@ -101,7 +102,7 @@
   if (!window.gsap || !window.ScrollTrigger) {
     raiz.classList.add('sem-gsap'); document.body.classList.remove('is-loading');
     const l = $('#loader'); if (l) l.remove();
-    const c = $('#filmeCanvas'); if (c) c.style.background = 'url(media/filme/m/f121.webp) center / cover';
+    const c = $('#filmeCanvas'); if (c) c.style.background = 'url(media/heroi/m/q143.webp) center / cover';
     $$('.cena video').forEach(v => { v.poster = v.dataset.poster; v.src = v.closest('.cena').dataset.src; });
     const f = $('.reserva-fundo'); if (f) { f.poster = f.dataset.poster; f.src = f.dataset.src; }
     $$('[data-escolhe]').forEach(b => b.addEventListener('click', () => { Reserva.escolhe(b.dataset.escolhe); $('#reserva').scrollIntoView(); }));
@@ -118,7 +119,7 @@
 
   /* ---------- rolagem suave (computador; no toque fica a rolagem nativa) ---------- */
   let lenis = null;
-  if (!reduz && window.Lenis) {
+  if (!reduz && !toque && window.Lenis) {
     lenis = new Lenis({ lerp: .085, wheelMultiplier: .95 });
     lenis.on('scroll', ScrollTrigger.update);
     gsap.ticker.add(t => lenis.raf(t * 1000));
@@ -137,88 +138,116 @@
 
   /* =========================================================
      1. FILME — quadros do reel num canvas
+     Os quadros chegam como arquivos (fetch → Blob) e são decodificados fora da linha principal
+     (createImageBitmap) só numa janela em volta da posição atual. Desenhar vira uma cópia rápida,
+     sem travar a rolagem. Um quadro a cada 6 fica sempre pronto, como reserva para saltos.
      ========================================================= */
   const Filme = (() => {
     const cv = $('#filmeCanvas'), ctx = cv.getContext('2d', { alpha: false });
-    const N = 129;
+    const N = 149;
     const conj = Math.min(innerWidth, innerHeight * 1.2) >= 900 || innerWidth >= 1100 ? 'd' : 'm';
-    // trechos do reel (números dos quadros), peso na rolagem e zoom
+    // uma tomada contínua (porta → deck → piscina → cabana) e a vista final, que entra por fusão
     const SEG = [
-      { a: 1, b: 4, w: .9, z0: 1, z1: 1.24, nome: 'A placa' },
-      { a: 5, b: 10, w: .8, z0: 1.02, z1: 1.14, nome: 'A estrada' },
-      { a: 11, b: 120, w: 6, z0: 1, z1: 1, nome: 'A chegada' },
-      { a: 121, b: 129, w: 1.3, z0: 1.16, z1: 1, nome: 'A vista' },
+      { a: 1, b: 142, w: 7.6, z0: 1, z1: 1 },
+      { a: 143, b: 149, w: 1.4, z0: 1.16, z1: 1 },
     ];
     let acc = 0; SEG.forEach(s => { s.s = acc; acc += s.w; s.e = acc; });
-    const TOTAL = acc, FUNDE = .3;
-    const imgs = new Array(N + 1), ok = new Uint8Array(N + 1);
+    const TOTAL = acc, FUNDE = .35;
+    const FRENTE = conj === 'm' ? 30 : 40, TRAS = 14, INICIAIS = 40;
+    const ancora = n => n % 6 === 1 || n === N || SEG.some(s => n === s.a || n === s.b);
+    const url = n => `media/heroi/${conj}/q${String(n).padStart(3, '0')}.webp`;
+    const blobs = new Array(N + 1), bmps = new Array(N + 1), falhou = new Uint8Array(N + 1);
+    const baixando = new Set(), decod = new Set();
     const tiny = document.createElement('canvas'); tiny.width = 18; tiny.height = 32;
     const tctx = tiny.getContext('2d');
     const estado = { t: 0 };
     let W = 0, H = 0, dpr = 1, painel = false, P = null, sujo = true, ultimoT = -1, ativo = true;
-    const hudBarra = $('#hudBarra'), hudTempo = $('#hudTempo'), hudCena = $('#hudCena');
-    let hudNome = '';
+    let alvo = 1, dir = 1;
 
-    const url = n => `media/filme/${conj}/f${String(n).padStart(3, '0')}.webp`;
-
-    function ordem() {
-      const vis = new Set(), out = [];
-      const poe = n => { if (n >= 1 && n <= N && !vis.has(n)) { vis.add(n); out.push(n); } };
-      [1, 5, 11, 121, 4, 10, 120, 129].forEach(poe);
-      [16, 8, 4, 2, 1].forEach(p => { for (let i = 1; i <= N; i += p) poe(i); });
-      return out;
+    /* --- download: posição atual primeiro, depois começo, âncoras e o resto --- */
+    const base = [];
+    {
+      const vis = new Set(), poe = n => { if (!vis.has(n)) { vis.add(n); base.push(n); } };
+      for (let n = 1; n <= INICIAIS; n++) poe(n);
+      for (let n = 1; n <= N; n++) if (ancora(n)) poe(n);
+      for (let n = 1; n <= N; n++) poe(n);
     }
-    function carregaUm(n) {
-      return new Promise(res => {
-        const im = new Image(); im.decoding = 'async';
-        im.onload = () => {
-          const fim = () => { imgs[n] = im; ok[n] = 1; sujo = true; res(); };
-          im.decode ? im.decode().then(fim, fim) : fim();
-        };
-        im.onerror = () => res();
-        im.src = url(n);
+    const essenciais = new Set();
+    for (let n = 1; n <= N; n++) if (n <= INICIAIS || ancora(n)) essenciais.add(n);
+    const totalEss = essenciais.size;
+    let iBase = 0, avisaProgresso = () => {}, resolvePronto;
+    const pronto = new Promise(r => { resolvePronto = r; });
+    const confere = () => { avisaProgresso(1 - essenciais.size / totalEss); if (!essenciais.size && bmps[1]) resolvePronto(); };
+
+    function proximo() {
+      for (let k = 0; k <= FRENTE; k++) {
+        const n = alvo + dir * k; if (n < 1 || n > N) break;
+        if (!blobs[n] && !falhou[n] && !baixando.has(n)) return n;
+      }
+      while (iBase < base.length) { const n = base[iBase++]; if (!blobs[n] && !falhou[n] && !baixando.has(n)) return n; }
+      return 0;
+    }
+    function bombeia() {
+      while (baixando.size < 6) {
+        const n = proximo(); if (!n) return;
+        baixando.add(n);
+        fetch(url(n)).then(r => (r.ok ? r.blob() : Promise.reject(r.status)))
+          .then(b => { blobs[n] = b; }, () => { falhou[n] = 1; })
+          .finally(() => { baixando.delete(n); essenciais.delete(n); agenda(); confere(); bombeia(); });
+      }
+    }
+
+    /* --- decodificação em janela --- */
+    function imagem(b) {
+      return new Promise((res, rej) => {
+        const im = new Image(); im.onerror = rej;
+        im.onload = () => (im.decode ? im.decode().catch(() => {}) : Promise.resolve()).then(() => res(im));
+        im.src = URL.createObjectURL(b);
       });
     }
-    // carrega do mais espaçado ao mais fino; resolve "pronto" quando ~1/4 dos quadros chegou
-    const PRONTO = 36;
-    let avisaProgresso = () => {};
-    const pronto = new Promise(resolve => {
-      const lista = ordem(); let i = 0, feitos = 0, ativos = 0;
-      const prox = () => {
-        while (ativos < 6 && i < lista.length) {
-          const n = lista[i++]; ativos++;
-          carregaUm(n).then(() => {
-            ativos--; feitos++;
-            avisaProgresso(Math.min(1, feitos / PRONTO));
-            if (feitos === PRONTO || feitos === lista.length) resolve();
-            prox();
-          });
-        }
-      };
-      prox();
-    });
-
+    const criaBitmap = window.createImageBitmap ? b => createImageBitmap(b).catch(() => imagem(b)) : imagem;
+    const quer = n => ancora(n) || (dir > 0 ? n >= alvo - TRAS && n <= alvo + FRENTE : n >= alvo - FRENTE && n <= alvo + TRAS);
+    function agenda() {
+      for (let n = 1; n <= N; n++) if (bmps[n] && !quer(n)) { if (bmps[n].close) bmps[n].close(); bmps[n] = null; }
+      const fila = [alvo];
+      for (let k = 1; k <= 10; k++) fila.push(alvo + dir * k);
+      for (let k = 1; k <= 5; k++) fila.push(alvo - dir * k);
+      for (let k = 11; k <= FRENTE; k++) fila.push(alvo + dir * k);
+      for (let k = 6; k <= TRAS; k++) fila.push(alvo - dir * k);
+      for (let n = 1; n <= N; n++) if (ancora(n)) fila.push(n);
+      for (const n of fila) {
+        if (decod.size >= 3) break;
+        if (n < 1 || n > N || bmps[n] || decod.has(n) || !blobs[n]) continue;
+        decod.add(n);
+        criaBitmap(blobs[n])
+          .then(b => { if (quer(n)) { bmps[n] = b; sujo = true; } else if (b.close) b.close(); }, () => {})
+          .finally(() => { decod.delete(n); confere(); agenda(); });
+      }
+    }
     function perto(n, s) {
-      if (ok[n]) return imgs[n];
+      if (bmps[n]) return bmps[n];
       for (let d = 1; d < N; d++) {
         const a = n - d, b = n + d;
-        if (a >= s.a && ok[a]) return imgs[a];
-        if (b <= s.b && ok[b]) return imgs[b];
+        if (a >= s.a && bmps[a]) return bmps[a];
+        if (b <= s.b && bmps[b]) return bmps[b];
         if (a < s.a && b > s.b) break;
       }
-      for (let d = 1; d < N; d++) { if (n - d >= 1 && ok[n - d]) return imgs[n - d]; if (n + d <= N && ok[n + d]) return imgs[n + d]; }
+      for (let d = 1; d < N; d++) { if (n - d >= 1 && bmps[n - d]) return bmps[n - d]; if (n + d <= N && bmps[n + d]) return bmps[n + d]; }
       return null;
     }
 
+    /* --- desenho --- */
     function medidas() {
       const r = cv.getBoundingClientRect();
-      const nd = Math.min(2, devicePixelRatio || 1);
+      // o quadro do celular tem 480 px: resolução maior no canvas só gastaria processamento
+      const nd = Math.min(conj === 'm' ? 1.4 : 1.6, devicePixelRatio || 1);
       if (Math.abs(r.width - W) < 1 && Math.abs(r.height - H) < 1 && nd === dpr) return;
       W = r.width; H = r.height; dpr = nd;
       cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'medium';
       painel = W / H > 1.02 && W >= 900;
-      if (painel) { const h = Math.min(H * .84, 1040), w = h * 9 / 16; P = { w, h, x: W * .7 - w / 2, y: (H - h) / 2 }; }
+      if (painel) { const h = Math.min(H * .88, 1080), w = h * 9 / 16; P = { w, h, x: W * .69 - w / 2, y: (H - h) / 2 }; }
       sujo = true;
     }
     function cobre(src, sw, sh, x, y, w, h, z) {
@@ -227,44 +256,40 @@
     }
     function pinta(im, alfa, z) {
       if (!im || alfa <= .002) return;
-      const iw = im.naturalWidth, ih = im.naturalHeight;
+      const iw = im.naturalWidth || im.width, ih = im.naturalHeight || im.height;
       ctx.globalAlpha = alfa;
       if (painel) {
-        tctx.globalAlpha = 1; tctx.drawImage(im, 0, 0, tiny.width, tiny.height);
+        tctx.drawImage(im, 0, 0, tiny.width, tiny.height);
         tctx.fillStyle = 'rgba(8,11,9,.5)'; tctx.fillRect(0, 0, tiny.width, tiny.height);
-        ctx.imageSmoothingQuality = 'low';
         cobre(tiny, tiny.width, tiny.height, 0, 0, W, H, 1.2);
-        ctx.imageSmoothingQuality = 'high';
         ctx.save(); ctx.beginPath();
-        if (ctx.roundRect) ctx.roundRect(P.x, P.y, P.w, P.h, 20); else ctx.rect(P.x, P.y, P.w, P.h);
+        if (ctx.roundRect) ctx.roundRect(P.x, P.y, P.w, P.h, 14); else ctx.rect(P.x, P.y, P.w, P.h);
         ctx.clip(); cobre(im, iw, ih, P.x, P.y, P.w, P.h, z); ctx.restore();
       } else cobre(im, iw, ih, 0, 0, W, H, z);
       ctx.globalAlpha = 1;
     }
-    function segmento(i, u, alfa) {
+    function segmento(i, u, alfa, principal) {
       const s = SEG[i], pos = s.a + u * (s.b - s.a), f0 = Math.floor(pos), fr = pos - f0;
+      if (principal && f0 !== alvo) { dir = f0 > alvo ? 1 : -1; alvo = f0; agenda(); bombeia(); }
       const z = s.z0 + (s.z1 - s.z0) * suave(u);
-      const im0 = perto(f0, s); pinta(im0, alfa, z);
-      if (fr > .02 && f0 < s.b) { const im1 = perto(f0 + 1, s); if (im1 && im1 !== im0) pinta(im1, alfa * fr, z); }
+      pinta(perto(f0, s), alfa, z);
+      // entre dois quadros vizinhos, funde um no outro: o movimento fica contínuo mesmo rolando devagar
+      if (fr > .03 && f0 < s.b && bmps[f0] && bmps[f0 + 1]) pinta(bmps[f0 + 1], alfa * fr, z);
     }
     function desenha() {
       const t = clamp(estado.t, 0, TOTAL);
       let i = SEG.findIndex(s => t < s.e); if (i < 0) i = SEG.length - 1;
       const s = SEG[i], u = clamp((t - s.s) / s.w);
       ctx.fillStyle = '#0b0f0c'; ctx.fillRect(0, 0, W, H);
-      segmento(i, u, 1);
-      if (i < SEG.length - 1 && t > s.e - FUNDE) segmento(i + 1, 0, suave((t - (s.e - FUNDE)) / FUNDE));
-      if (painel) { ctx.strokeStyle = 'rgba(244,241,235,.14)'; ctx.lineWidth = 1; ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(P.x + .5, P.y + .5, P.w - 1, P.h - 1, 20); else ctx.rect(P.x, P.y, P.w, P.h); ctx.stroke(); }
-      // painel de tempo
-      hudBarra.style.transform = `scaleX(${t / TOTAL})`;
-      hudTempo.textContent = '00:' + String(Math.min(19, Math.round(t / TOTAL * 19))).padStart(2, '0');
-      if (hudNome !== s.nome) { hudNome = s.nome; hudCena.textContent = s.nome; }
+      segmento(i, u, 1, true);
+      if (i < SEG.length - 1 && t > s.e - FUNDE) segmento(i + 1, 0, suave((t - (s.e - FUNDE)) / FUNDE), false);
     }
     function tick() {
       if (!ativo) return;
       if (sujo || estado.t !== ultimoT) { ultimoT = estado.t; sujo = false; desenha(); }
     }
     medidas();
+    bombeia();
     gsap.ticker.add(tick);
     return {
       TOTAL, estado, pronto, medidas,
@@ -292,14 +317,14 @@
   function entrada() {
     const tl = gsap.timeline();
     if (reduz) {
-      tl.from('#capTitulo, #topo, .hud, #dica', { autoAlpha: 0, duration: .8, clearProps: 'opacity,visibility' });
+      tl.from('#capTitulo, #topo, #dica', { autoAlpha: 0, duration: .8, clearProps: 'opacity,visibility' });
       return tl;
     }
     tl.fromTo('#filmeCanvas', { scale: 1.14 }, { scale: 1, duration: 2.4, ease: 'expo.out' }, 0);
     if (tituloSplit) tl.from(tituloSplit.chars, { yPercent: 118, duration: 1.5, stagger: .045, ease: 'expo.out' }, .15);
     tl.from('#capTitulo .reveal', { autoAlpha: 0, y: 20, duration: 1.1, stagger: .12, ease: 'power3.out' }, .5)
       .from('#topo', { autoAlpha: 0, y: -18, duration: 1.1, ease: 'power3.out', clearProps: 'transform,opacity,visibility' }, .55)
-      .from('#dica, .hud', { autoAlpha: 0, duration: 1.2 }, .9);
+      .from('#dica', { autoAlpha: 0, duration: 1.2 }, .9);
     return tl;
   }
 
@@ -334,11 +359,11 @@
   const fimFilme = () => Math.max(1, filmeEl.offsetHeight - palco.offsetHeight - innerHeight);
   const tlFilme = gsap.timeline({
     defaults: { ease: 'none' },
-    scrollTrigger: { trigger: filmeEl, start: 'top top', end: () => '+=' + fimFilme(), scrub: reduz ? true : .8, invalidateOnRefresh: true },
+    scrollTrigger: { trigger: filmeEl, start: 'top top', end: () => '+=' + fimFilme(), scrub: reduz ? true : toque ? .45 : .8, invalidateOnRefresh: true },
   });
   tlFilme.to(Filme.estado, { t: Filme.TOTAL, duration: Filme.TOTAL }, 0);
   tlFilme.to('#dica', { autoAlpha: 0, duration: .15 }, .05);
-  tlFilme.to('#capTitulo', reduz ? { autoAlpha: 0, duration: .3 } : { autoAlpha: 0, yPercent: -12, duration: .4, ease: 'power2.in' }, .3);
+  tlFilme.to('#capTitulo', reduz ? { autoAlpha: 0, duration: .25 } : { autoAlpha: 0, yPercent: -12, duration: .3, ease: 'power2.in' }, .1);
 
   $$('.cap[data-in]').forEach(c => {
     const a = +c.dataset.in, b = c.dataset.out ? +c.dataset.out : null;
@@ -360,7 +385,7 @@
   // o palco recua quando o manifesto sobe por cima dele
   if (!reduz) {
     gsap.timeline({ scrollTrigger: { trigger: '#manifesto', start: 'top bottom', end: 'top top', scrub: true } })
-      .to(palco, { scale: .9, yPercent: -3, borderRadius: 28, ease: 'none' }, 0)
+      .to(palco, toque ? { scale: .9, yPercent: -3, ease: 'none' } : { scale: .9, yPercent: -3, borderRadius: 28, ease: 'none' }, 0)
       .to('#filmeEscuro', { opacity: .8, ease: 'none' }, 0);
   }
 
@@ -425,7 +450,9 @@
     if (reduz) return;
     gsap.fromTo(img, { yPercent: -9 }, { yPercent: 0, ease: 'none', scrollTrigger: { trigger: c, start: 'top bottom', end: 'bottom top', scrub: true } });
     gsap.from($$('.cab-info > *', c), { autoAlpha: 0, y: 26, duration: 1, stagger: .06, ease: 'power3.out', scrollTrigger: { trigger: c, start: 'top 70%', once: true } });
-    if (prox) gsap.to(dentro, { scale: .92, '--sombra': .6, ease: 'none', scrollTrigger: { trigger: prox, start: 'top bottom', end: () => 'top ' + (parseFloat(getComputedStyle(prox).top) || 80) + 'px', scrub: true, invalidateOnRefresh: true } });
+    if (prox) gsap.timeline({ scrollTrigger: { trigger: prox, start: 'top bottom', end: () => 'top ' + (parseFloat(getComputedStyle(prox).top) || 80) + 'px', scrub: true, invalidateOnRefresh: true } })
+      .to(dentro, { scale: .92, ease: 'none' }, 0)
+      .to($('.sombra', c), { opacity: .6, ease: 'none' }, 0);
   });
 
   /* =========================================================
@@ -437,13 +464,17 @@
   cenas.forEach((c, i) => {
     const dentro = $('.cena-in', c), v = $('video', c), prox = cenas[i + 1] || $('#comodidades');
     ScrollTrigger.create({ trigger: c, start: 'top bottom+=120%', once: true, onEnter: () => ligaVideo(v, c.dataset.src) });
-    ScrollTrigger.create({ trigger: c, start: 'top bottom', endTrigger: prox, end: 'top top', onToggle: s => (s.isActive ? toca(v) : v.pause()) });
+    // toca só com a cena parada na tela: vídeo tocando durante a transição trava o celular
+    ScrollTrigger.create({ trigger: c, start: 'top top+=2', endTrigger: prox, end: 'top bottom-=2', onToggle: s => (s.isActive ? toca(v) : v.pause()) });
     const h = $('h3', c), extras = $$('.cena-txt > :not(h3), .cena-n', c);
     if (reduz) return;
-    gsap.timeline({ scrollTrigger: { trigger: c, start: 'top bottom', end: 'top top', scrub: true } })
-      .fromTo(dentro, { clipPath: 'inset(14% 6% 0% 6% round 26px)' }, { clipPath: 'inset(0% 0% 0% 0% round 0px)', ease: 'none' }, 0)
-      .fromTo(v, { scale: 1.32 }, { scale: 1, ease: 'none' }, 0);
-    gsap.to(dentro, { scale: .88, '--sombra': .75, ease: 'none', scrollTrigger: { trigger: prox, start: 'top bottom', end: 'top top', scrub: true } });
+    // no toque, só transformações e opacidade (a GPU faz sozinha); recorte animado só no computador
+    const entra = gsap.timeline({ scrollTrigger: { trigger: c, start: 'top bottom', end: 'top top', scrub: true } })
+      .fromTo(v, { scale: 1.3 }, { scale: 1, ease: 'none' }, 0);
+    if (!toque) entra.fromTo(dentro, { clipPath: 'inset(14% 6% 0% 6% round 26px)' }, { clipPath: 'inset(0% 0% 0% 0% round 0px)', ease: 'none' }, 0);
+    gsap.timeline({ scrollTrigger: { trigger: prox, start: 'top bottom', end: 'top top', scrub: true } })
+      .to(dentro, { scale: .88, ease: 'none' }, 0)
+      .to($('.sombra', c), { opacity: .75, ease: 'none' }, 0);
     const sp = palavras(h);
     const tl = gsap.timeline({ paused: true });
     if (sp) tl.fromTo(sp.words, { yPercent: 115 }, { yPercent: 0, duration: 1.2, stagger: .06, ease: 'expo.out' }, 0);

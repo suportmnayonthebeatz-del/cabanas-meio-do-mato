@@ -149,7 +149,7 @@ em { font-style: italic; }
 .menu-pe { display: grid; gap: 8px; font-size: 14px; color: var(--claro-2); }
 
 /* ---------- 1. filme ---------- */
-.filme { position: relative; height: 840svh; }
+.filme { position: relative; height: 660svh; }
 .filme-palco { position: sticky; top: 0; height: 100lvh; overflow: hidden; background: var(--noite); }
 .filme-palco > canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 .filme-veu {
@@ -159,7 +159,7 @@ em { font-style: italic; }
     linear-gradient(to top, rgba(8, 11, 9, .9) 0%, rgba(8, 11, 9, .55) 30%, rgba(8, 11, 9, 0) 62%);
 }
 .filme-escuro { position: absolute; inset: 0; background: #050706; opacity: 0; pointer-events: none; }
-.filme-ui { position: absolute; inset: 0 0 auto 0; height: 100svh; padding: calc(var(--topo) + 24px) var(--g) calc(84px + var(--seg-safe)); display: flex; flex-direction: column; justify-content: flex-end; }
+.filme-ui { position: absolute; inset: 0 0 auto 0; height: 100svh; padding: calc(var(--topo) + 24px) var(--g) calc(56px + var(--seg-safe)); display: flex; flex-direction: column; justify-content: flex-end; }
 .caps { display: grid; align-items: end; }
 .cap { grid-area: 1 / 1; max-width: 640px; }
 .js .cap[data-in] { opacity: 0; visibility: hidden; }
@@ -171,15 +171,10 @@ em { font-style: italic; }
 .titulo { font-size: clamp(84px, 25vw, 260px); line-height: .84; letter-spacing: -.025em; margin-left: -.04em; }
 .titulo em { display: inline-block; padding-right: .06em; }
 .lead { margin-top: 20px; font-size: clamp(17px, 4.4vw, 21px); line-height: 1.45; color: var(--claro-2); max-width: 30ch; }
-.dica { position: absolute; right: var(--g); bottom: calc(92px + var(--seg-safe)); display: flex; flex-direction: column; align-items: center; gap: 12px; color: var(--claro-2); }
+.dica { position: absolute; right: var(--g); bottom: calc(60px + var(--seg-safe)); display: flex; flex-direction: column; align-items: center; gap: 12px; color: var(--claro-2); }
 .dica .kicker { writing-mode: vertical-rl; letter-spacing: .3em; font-size: 10px; }
 .dica i { order: 2; width: 1px; height: 54px; background: linear-gradient(var(--claro), transparent); transform-origin: top; animation: pinga 2.4s var(--suave) infinite; }
 @keyframes pinga { 0% { transform: scaleY(0); opacity: 1; } 55% { transform: scaleY(1); opacity: 1; } 100% { transform: scaleY(1); opacity: 0; } }
-.hud { position: absolute; left: var(--g); right: var(--g); bottom: calc(24px + var(--seg-safe)); display: flex; align-items: center; gap: 14px; color: var(--claro-3); }
-.hud-trilho { flex: 1; height: 1px; background: var(--linha); position: relative; overflow: hidden; }
-.hud-trilho i { position: absolute; inset: 0; background: var(--claro); transform: scaleX(0); transform-origin: left; }
-.hud-tempo b { color: var(--claro); font-weight: 400; font-variant-numeric: tabular-nums; }
-.hud-cena { min-width: 84px; color: var(--claro-2); }
 
 /* ---------- seções claras ---------- */
 .claro { background: var(--linho); color: var(--tinta); }
@@ -215,7 +210,7 @@ em { font-style: italic; }
   display: grid; grid-template-rows: minmax(0, 1fr) auto; transform-origin: 50% 0;
   box-shadow: 0 -20px 60px rgba(0, 0, 0, .35);
 }
-.cab-in::after { content: ""; position: absolute; inset: 0; background: #050706; opacity: var(--sombra, 0); pointer-events: none; border-radius: inherit; }
+.sombra { position: absolute; inset: 0; z-index: 4; background: #050706; opacity: 0; pointer-events: none; border-radius: inherit; }
 .cab-foto { position: relative; grid-row: 1; overflow: hidden; min-height: 0; }
 .cab-foto img { position: absolute; inset: 0; width: 100%; height: 116%; object-fit: cover; object-position: 50% 78%; will-change: transform; }
 .cab-foto::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, var(--noite-3) 0%, rgba(27, 35, 29, 0) 32%); }
@@ -244,7 +239,6 @@ em { font-style: italic; }
 .cena:last-child { margin-bottom: 145svh; }
 .cena-in { position: absolute; inset: 0; overflow: hidden; background: var(--noite-2); transform-origin: 50% 30%; will-change: transform, clip-path; }
 .cena-in::before { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(to top, rgba(8, 11, 9, .88) 0%, rgba(8, 11, 9, .35) 34%, rgba(8, 11, 9, 0) 58%), linear-gradient(to bottom, rgba(8, 11, 9, .4), transparent 22%); }
-.cena-in::after { content: ""; position: absolute; inset: 0; z-index: 3; background: #050706; opacity: var(--sombra, 0); pointer-events: none; }
 .cena video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .cena-txt { position: absolute; z-index: 2; left: var(--g); right: var(--g); bottom: calc(100lvh - 100svh + 96px + var(--seg-safe)); max-width: 680px; }
 .cena-txt .kicker { display: block; color: var(--ambar-2); margin-bottom: 14px; }
@@ -444,7 +438,7 @@ em { font-style: italic; }
   .marca svg { width: 40px; height: 28px; }
   .marca span { font-size: 24px; }
 
-  .filme { height: 760vh; }
+  .filme { height: 640vh; }
   .filme-veu { background: linear-gradient(90deg, rgba(8, 11, 9, .82) 0%, rgba(8, 11, 9, .45) 34%, rgba(8, 11, 9, 0) 52%), linear-gradient(to top, rgba(8, 11, 9, .6), transparent 30%); }
   .filme-ui { justify-content: center; padding-bottom: 100px; }
   .caps { align-items: center; }
@@ -452,7 +446,6 @@ em { font-style: italic; }
   .cap h2 { font-size: clamp(56px, 5.6vw, 96px); }
   .titulo { font-size: clamp(110px, 11.5vw, 210px); }
   .dica { right: auto; left: 50%; transform: translateX(-50%); bottom: 104px; display: none; }
-  .hud { right: auto; width: min(40vw, 560px); bottom: 40px; }
 
   .menu { display: grid; grid-template-columns: 1.4fr 1fr; align-items: end; }
   .menu[hidden] { display: none; }
@@ -491,6 +484,11 @@ em { font-style: italic; }
   .filme-veu { background: linear-gradient(to bottom, rgba(8, 11, 9, .5), rgba(8, 11, 9, 0) 24%), linear-gradient(to top, rgba(8, 11, 9, .9) 0%, rgba(8, 11, 9, .5) 32%, rgba(8, 11, 9, 0) 60%); }
   .filme-ui { justify-content: flex-end; }
   .cap { max-width: 720px; }
+}
+
+@media (hover: none), (pointer: coarse) {
+  .grao { display: none; }
+  .cena-in { border-radius: 22px 22px 0 0; }
 }
 
 /* ---------- sem GSAP (falha de rede): tudo visível e parado ---------- */

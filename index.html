@@ -18,8 +18,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300..600&family=Geist+Mono:wght@400;500&display=swap">
-<link rel="preload" as="image" href="media/filme/m/f001.webp" media="(max-width: 899px)">
-<link rel="preload" as="image" href="media/filme/d/f001.webp" media="(min-width: 900px)">
+<link rel="preload" as="fetch" href="media/heroi/m/q001.webp" media="(max-width: 899px)" crossorigin="anonymous">
+<link rel="preload" as="fetch" href="media/heroi/d/q001.webp" media="(min-width: 900px)" crossorigin="anonymous">
 <link rel="stylesheet" href="css/site.css">
 <script>document.documentElement.classList.add('js')</script>
 <noscript><style>.loader{display:none}.cap,.cena-txt,.reveal{opacity:1!important;visibility:visible!important}</style></noscript>
@@ -95,19 +95,13 @@
             <h1 class="titulo" id="titulo">Meio do <em>Mato</em></h1>
             <p class="lead reveal">Duas cabanas de vidro para casais, escondidas na mata, a dez minutos do Recreio.</p>
           </div>
-          <div class="cap" data-in=".95" data-out="1.55"><span class="kicker">01 · A estrada</span><h2>Dez minutos depois do Recreio, <em>a mata começa.</em></h2></div>
-          <div class="cap" data-in="1.8" data-out="2.75"><span class="kicker">02 · A porta</span><h2>A porta abre com <em>o seu código.</em></h2><p>Sem recepção e sem fila.</p></div>
-          <div class="cap" data-in="3.2" data-out="4.35"><span class="kicker">03 · O deck</span><h2>Piscina de vidro, aquecida, <em>só de vocês.</em></h2></div>
-          <div class="cap" data-in="4.8" data-out="6.1"><span class="kicker">04 · A mata</span><h2>Nenhum vizinho à vista. <em>Só a mata.</em></h2></div>
-          <div class="cap" data-in="6.55" data-out="7.5"><span class="kicker">05 · A cabana</span><h2>Paredes de vidro <em>para a mata entrar.</em></h2></div>
-          <div class="cap cap-fim" data-in="7.95"><span class="kicker">06 · Chegou</span><h2>É toda <em>sua.</em></h2><a class="btn" href="#cabanas"><span>Conhecer as cabanas</span><svg class="ico"><use href="#seta"/></svg></a></div>
+          <div class="cap" data-in=".42" data-out="1.3"><span class="kicker">A porta</span><h2>A porta abre com <em>o seu código.</em></h2><p>Sem recepção e sem fila.</p></div>
+          <div class="cap" data-in="1.6" data-out="2.55"><span class="kicker">O deck</span><h2>Nenhum vizinho à vista. <em>Só a mata.</em></h2></div>
+          <div class="cap" data-in="2.95" data-out="4.3"><span class="kicker">A piscina</span><h2>Piscina de vidro, aquecida, <em>só de vocês.</em></h2></div>
+          <div class="cap" data-in="5.7" data-out="7.2"><span class="kicker">A cabana</span><h2>Paredes de vidro <em>para a mata entrar.</em></h2></div>
+          <div class="cap cap-fim" data-in="7.85"><span class="kicker">Chegou</span><h2>É toda <em>sua.</em></h2><a class="btn" href="#cabanas"><span>Conhecer as cabanas</span><svg class="ico"><use href="#seta"/></svg></a></div>
         </div>
         <div class="dica" id="dica" aria-hidden="true"><i></i><span class="kicker">Role para entrar</span></div>
-        <div class="hud" aria-hidden="true">
-          <span class="kicker hud-cena" id="hudCena">A placa</span>
-          <span class="hud-trilho"><i id="hudBarra"></i></span>
-          <span class="kicker hud-tempo"><b id="hudTempo">00:00</b> / 00:19</span>
-        </div>
       </div>
     </div>
   </section>
@@ -141,7 +135,7 @@
     </header>
     <div class="pilha caixa">
       <article class="cab" style="--i:0">
-        <div class="cab-in">
+        <div class="cab-in"><i class="sombra" aria-hidden="true"></i>
           <figure class="cab-foto">
             <img src="fotos/800/aurora-fachada.webp" srcset="fotos/800/aurora-fachada.webp 800w, fotos/1400/aurora-fachada.webp 1400w" sizes="(min-width: 900px) 55vw, 100vw" alt="Cabana Aurora ao entardecer, com a piscina aquecida no deck" loading="lazy" decoding="async">
           </figure>
@@ -167,7 +161,7 @@
         </div>
       </article>
       <article class="cab" style="--i:1">
-        <div class="cab-in">
+        <div class="cab-in"><i class="sombra" aria-hidden="true"></i>
           <figure class="cab-foto">
             <img src="fotos/800/concept-fachada.webp" srcset="fotos/800/concept-fachada.webp 800w, fotos/1400/concept-fachada.webp 1400w" sizes="(min-width: 900px) 55vw, 100vw" alt="Cabana Concept: fachada em A com paredes de vidro, entre palmeiras" loading="lazy" decoding="async">
           </figure>
@@ -203,42 +197,42 @@
       <h2 class="sec-titulo split">Do fim da tarde <em>ao café da manhã.</em></h2>
     </header>
     <article class="cena" data-src="media/cenas/piscina.mp4">
-      <div class="cena-in">
+      <div class="cena-in"><i class="sombra" aria-hidden="true"></i>
         <video muted playsinline loop preload="none" data-poster="media/cenas/piscina.webp" aria-hidden="true"></video>
         <div class="cena-txt"><span class="kicker">15h · O deck</span><h3>A água fica quente <em>o dia inteiro.</em></h3></div>
         <span class="cena-n kicker">01 / 06</span>
       </div>
     </article>
     <article class="cena" data-src="media/cenas/mesa.mp4">
-      <div class="cena-in">
+      <div class="cena-in"><i class="sombra" aria-hidden="true"></i>
         <video muted playsinline loop preload="none" data-poster="media/cenas/mesa.webp" aria-hidden="true"></video>
         <div class="cena-txt"><span class="kicker">19h · O jantar</span><h3>Mesa posta para dois, <em>vista para o vale.</em></h3></div>
         <span class="cena-n kicker">02 / 06</span>
       </div>
     </article>
     <article class="cena" data-src="media/cenas/luz.mp4">
-      <div class="cena-in">
+      <div class="cena-in"><i class="sombra" aria-hidden="true"></i>
         <video muted playsinline loop preload="none" data-poster="media/cenas/luz.webp" aria-hidden="true"></video>
         <div class="cena-txt"><span class="kicker">20h · A luz</span><h3>Quando escurece, <em>a luz fica baixa.</em></h3></div>
         <span class="cena-n kicker">03 / 06</span>
       </div>
     </article>
     <article class="cena" data-src="media/cenas/teto.mp4">
-      <div class="cena-in">
+      <div class="cena-in"><i class="sombra" aria-hidden="true"></i>
         <video muted playsinline loop preload="none" data-poster="media/cenas/teto.webp" aria-hidden="true"></video>
         <div class="cena-txt"><span class="kicker">23h · O teto</span><h3>Dormir <em>contando estrelas.</em></h3><p>Na Aurora, o teto do quarto é de vidro.</p></div>
         <span class="cena-n kicker">04 / 06</span>
       </div>
     </article>
     <article class="cena" data-src="media/cenas/pia.mp4">
-      <div class="cena-in">
+      <div class="cena-in"><i class="sombra" aria-hidden="true"></i>
         <video muted playsinline loop preload="none" data-poster="media/cenas/pia.webp" aria-hidden="true"></video>
         <div class="cena-txt"><span class="kicker">8h · A manhã</span><h3>Pedra, madeira <em>e nada fora do lugar.</em></h3></div>
         <span class="cena-n kicker">05 / 06</span>
       </div>
     </article>
     <article class="cena" data-src="media/cenas/neon.mp4">
-      <div class="cena-in">
+      <div class="cena-in"><i class="sombra" aria-hidden="true"></i>
         <video muted playsinline loop preload="none" data-poster="media/cenas/neon.webp" aria-hidden="true"></video>
         <div class="cena-txt"><span class="kicker">Datas especiais</span><h3>Para as datas <em>que pedem mais.</em></h3><p>Aniversário, bodas ou pedido de casamento: conte para a gente no WhatsApp.</p></div>
         <span class="cena-n kicker">06 / 06</span>
