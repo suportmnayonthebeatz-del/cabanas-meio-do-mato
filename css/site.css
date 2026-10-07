@@ -248,36 +248,32 @@ em { font-style: italic; }
 
 /* ---------- 5. comodidades ---------- */
 .comodidades { position: relative; z-index: 4; margin-top: -100lvh; border-radius: 28px 28px 0 0; padding-block: clamp(88px, 12vw, 160px) clamp(72px, 9vw, 120px); }
-.bento { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-.b-card, .b-foto { position: relative; border-radius: 18px; overflow: hidden; min-width: 0; }
-.b-card {
-  background: #fbf8f2; border: 1px solid var(--linha-tinta); padding: 18px 16px 18px; display: flex; flex-direction: column; gap: 6px; min-height: 176px;
-  isolation: isolate;
+.bento { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-flow: dense; gap: 10px; }
+/* cada cartão: foto de fundo, ícone num círculo de vidro e o texto embaixo */
+.b-card { position: relative; isolation: isolate; min-width: 0; aspect-ratio: 3 / 4; border-radius: 18px; overflow: hidden; background: var(--noite-3); color: var(--claro); }
+.b-img { position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; object-fit: cover; transform: scale(1.001); transition: transform 1.2s var(--suave); }
+.b-card:hover .b-img { transform: scale(1.06); }
+.b-card::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(to top, rgba(8, 11, 9, .9) 0%, rgba(8, 11, 9, .5) 40%, rgba(8, 11, 9, 0) 68%); }
+.b-ico {
+  position: absolute; top: 12px; left: 12px; width: 40px; height: 40px; padding: 9px; border-radius: 50%;
+  fill: none; stroke: var(--claro); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round;
+  background: rgba(244, 241, 235, .14); border: 1px solid rgba(244, 241, 235, .22);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
 }
-.b-card::before { content: ""; position: absolute; inset: 0; z-index: -1; background: radial-gradient(420px circle at var(--mx, 50%) var(--my, -20%), rgba(227, 170, 108, .18), transparent 40%); opacity: 0; transition: opacity .4s; }
-.b-card:hover::before { opacity: 1; }
-.b-ico { width: 30px; height: 30px; fill: none; stroke: var(--tinta); stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; margin-bottom: auto; }
-.b-card h3 { font-size: 25px; line-height: 1.02; margin-top: 18px; }
-.b-card p { font-size: 13.5px; line-height: 1.45; color: var(--tinta-2); }
-.b-feixe { border-color: transparent; }
+.b-txt { position: absolute; left: 14px; right: 14px; bottom: 14px; }
+.b-card h3 { font-size: 23px; line-height: 1.02; }
+.b-card p { margin-top: 6px; font-size: 12.5px; line-height: 1.4; color: var(--claro-2); }
 .b-feixe::after {
-  content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.5px; pointer-events: none;
-  background: conic-gradient(from var(--ang), transparent 0 70%, var(--ambar) 82%, #fff4e4 88%, transparent 94%), linear-gradient(var(--linha-tinta), var(--linha-tinta));
+  content: ""; position: absolute; inset: 0; z-index: 2; border-radius: inherit; padding: 1.5px; pointer-events: none;
+  background: conic-gradient(from var(--ang), transparent 0 70%, var(--ambar) 82%, #fff4e4 88%, transparent 94%);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
   animation: feixe 5s linear infinite;
 }
 @keyframes feixe { to { --ang: 360deg; } }
-.b-foto { min-height: 176px; background: var(--linho-2); }
-.b-foto img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scale(1.001); transition: transform 1.2s var(--suave); }
-.b-foto:hover img { transform: scale(1.05); }
-.b-foto::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, rgba(8, 11, 9, .7), transparent 55%); }
-.b-foto figcaption { position: absolute; z-index: 1; left: 16px; right: 16px; bottom: 14px; color: var(--claro); font-family: var(--serif); font-size: 22px; line-height: 1.05; }
-.b-foto figcaption .kicker { display: block; font-size: 9.5px; color: var(--claro-2); margin-bottom: 6px; }
-.b-grande { grid-column: 1 / -1; aspect-ratio: 4 / 4.6; }
-.b-larga { grid-column: 1 / -1; aspect-ratio: 16 / 11; }
-.b-casal { grid-column: 1 / -1; min-height: 0; flex-direction: row; align-items: center; gap: 16px; }
-.b-casal .b-ico { margin: 0; }
-.b-casal h3 { margin: 0 0 2px; }
+.b-grande { grid-column: 1 / -1; aspect-ratio: 4 / 4.4; }
+.b-grande h3 { font-size: 34px; }
+.b-larga { grid-column: 1 / -1; aspect-ratio: 16 / 10; }
+.b-larga h3 { font-size: 30px; }
 
 .galeria-topo { display: flex; align-items: center; justify-content: space-between; margin-top: clamp(72px, 10vw, 120px); }
 .galeria-topo .rot { margin: 0; }
@@ -424,9 +420,7 @@ em { font-style: italic; }
   .bento { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
   .b-grande { grid-column: span 2; grid-row: span 2; aspect-ratio: auto; }
   .b-larga { grid-column: span 2; aspect-ratio: auto; }
-  .b-casal { grid-column: span 1; flex-direction: column; align-items: flex-start; }
-  .b-casal .b-ico { margin-bottom: auto; }
-  .b-casal h3 { margin-top: 18px; }
+  .b-par2 { grid-column: span 2; aspect-ratio: auto; }
   .galeria figure { flex-basis: 42vw; }
   .rodape-cima { grid-template-columns: auto repeat(3, minmax(0, 1fr)); align-items: start; }
 }
@@ -462,10 +456,13 @@ em { font-style: italic; }
   .cena-in { border-radius: 0; }
 
   .bento { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
-  .b-card { min-height: 230px; padding: 24px 22px; }
-  .b-foto { min-height: 230px; }
+  .b-card { aspect-ratio: auto; min-height: 300px; }
+  .b-par { grid-column: span 2; }
+  .b-txt { left: 22px; right: 22px; bottom: 20px; }
+  .b-ico { top: 18px; left: 18px; width: 44px; height: 44px; padding: 10px; }
   .b-card h3 { font-size: 30px; }
-  .b-foto figcaption { font-size: 26px; left: 22px; bottom: 20px; }
+  .b-card p { font-size: 14px; max-width: 34ch; }
+  .b-grande h3 { font-size: 46px; }
   .galeria { padding-inline: max(var(--g), calc((100vw - 1320px) / 2 + var(--g))); scroll-padding-inline: max(var(--g), calc((100vw - 1320px) / 2 + var(--g))); }
   .galeria figure { flex-basis: 30vw; }
 

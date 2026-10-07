@@ -19,7 +19,7 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300..600&family=Geist+Mono:wght@400;500&display=swap">
 <link rel="preload" as="fetch" href="media/heroi/video.json" crossorigin="anonymous">
-<link rel="stylesheet" href="css/site.css">
+<link rel="stylesheet" href="css/site.css?v=20261007b">
 <script>document.documentElement.classList.add('js')</script>
 <noscript><style>.loader{display:none}.cap,.cena-txt,.reveal{opacity:1!important;visibility:visible!important}</style></noscript>
 <script type="application/ld+json">
@@ -247,42 +247,56 @@
         <h2 class="sec-titulo split">Tudo para dois. <em>Nada que atrapalhe.</em></h2>
       </header>
       <div class="bento">
-        <figure class="b-foto b-grande"><img src="fotos/800/aurora-IMG_1115.webp" srcset="fotos/800/aurora-IMG_1115.webp 800w, fotos/1400/aurora-IMG_1115.webp 1400w" sizes="(min-width: 900px) 50vw, 100vw" alt="Piscina de vidro aquecida com degraus iluminados, cercada de pedras e mata" loading="lazy" decoding="async"><figcaption><span class="kicker">Piscina de vidro</span>Aquecida, o ano inteiro.</figcaption></figure>
-        <div class="b-card b-feixe">
-          <svg class="b-ico" viewBox="0 0 32 32"><rect x="4" y="6" width="24" height="15" rx="1.5"/><path d="M11 27h10M16 21v6"/></svg>
-          <h3>Cinema de 106"</h3><p>Telão ao ar livre, de frente para a piscina.</p>
-        </div>
-        <div class="b-card">
-          <svg class="b-ico" viewBox="0 0 32 32"><path d="M16 4c1 5 7 7 7 14a7 7 0 0 1-14 0c0-4 2-6 3-8 1 3 2 4 4 4-1-3-1-7 0-10Z"/><path d="M6 28h20"/></svg>
-          <h3>Fire pit e rede</h3><p>Fogo aceso e rede suspensa sobre a água.</p>
-        </div>
-        <figure class="b-foto"><img src="fotos/800/concept-noite.webp" alt="Deck à noite com o telão aceso, a piscina iluminada e o fire pit" loading="lazy" decoding="async"><figcaption><span class="kicker">À noite</span>Telão, água e fogo.</figcaption></figure>
-        <div class="b-card">
-          <svg class="b-ico" viewBox="0 0 32 32"><path d="M4 26 16 6l12 20Z"/><path d="m16 12 .9 1.9 2 .3-1.5 1.4.4 2-1.8-1-1.8 1 .4-2-1.5-1.4 2-.3Z"/></svg>
-          <h3>Teto de vidro</h3><p>Na Aurora, o céu fica em cima da cama.</p>
-        </div>
-        <div class="b-card">
-          <svg class="b-ico" viewBox="0 0 32 32"><path d="M7 12h16v7a7 7 0 0 1-7 7h-2a7 7 0 0 1-7-7Z"/><path d="M23 14h2a3 3 0 0 1 0 6h-2M11 4c-1 2 1 3 0 5M16 4c-1 2 1 3 0 5"/></svg>
-          <h3>Cozinha equipada</h3><p>Nespresso, air fryer e o necessário para o café.</p>
-        </div>
-        <figure class="b-foto"><img src="fotos/800/aurora-teto.webp" alt="Quarto da Aurora com teto de vidro e cama de casal" loading="lazy" decoding="async"><figcaption><span class="kicker">Aurora</span>O quarto de vidro.</figcaption></figure>
-        <div class="b-card">
-          <svg class="b-ico" viewBox="0 0 32 32"><path d="M4 13a17 17 0 0 1 24 0M8 17.5a11 11 0 0 1 16 0M12 22a5 5 0 0 1 8 0"/><circle cx="16" cy="26" r="1.2"/></svg>
-          <h3>Wi‑Fi e Alexa</h3><p>Ar-condicionado, smart TV e tudo no comando de voz.</p>
-        </div>
-        <div class="b-card">
-          <svg class="b-ico" viewBox="0 0 32 32"><circle cx="11" cy="16" r="6"/><path d="M17 16h12M25 16v4M21 16v3"/></svg>
-          <h3>Entrada sem recepção</h3><p>Fechadura eletrônica: o código chega com a reserva.</p>
-        </div>
-        <div class="b-card">
-          <svg class="b-ico" viewBox="0 0 32 32"><ellipse cx="16" cy="21" rx="6" ry="5"/><circle cx="8" cy="13" r="2.4"/><circle cx="13" cy="8.5" r="2.4"/><circle cx="19" cy="8.5" r="2.4"/><circle cx="24" cy="13" r="2.4"/></svg>
-          <h3>Pet bem-vindo</h3><p>Taxa de higienização de R$ 200 por estadia.</p>
-        </div>
-        <figure class="b-foto b-larga"><img src="fotos/800/aurora-IMG_1138.webp" srcset="fotos/800/aurora-IMG_1138.webp 800w, fotos/1400/aurora-IMG_1138.webp 1400w" sizes="(min-width: 900px) 50vw, 100vw" alt="Hóspede deitada na rede suspensa sobre a piscina" loading="lazy" decoding="async"><figcaption><span class="kicker">Rede suspensa</span>Sobre a água.</figcaption></figure>
-        <div class="b-card b-casal">
-          <svg class="b-ico" viewBox="0 0 32 32"><path d="M16 27S4 20 4 12a6 6 0 0 1 12-1 6 6 0 0 1 12 1c0 8-12 15-12 15Z"/></svg>
-          <h3>Só para casais</h3><p>Sem crianças nem bebês. Pensado para dois.</p>
-        </div>
+        <article class="b-card b-grande">
+          <img class="b-img" src="fotos/800/aurora-IMG_1115.webp" srcset="fotos/800/aurora-IMG_1115.webp 800w, fotos/1400/aurora-IMG_1115.webp 1400w" sizes="(min-width: 900px) 50vw, 100vw" alt="Piscina de vidro aquecida com degraus iluminados, cercada de pedras e mata" loading="lazy" decoding="async">
+          <svg class="b-ico" viewBox="0 0 32 32" aria-hidden="true"><path d="M4 12c3 0 3-2 6-2s3 2 6 2 3-2 6-2 3 2 6 2M4 18c3 0 3-2 6-2s3 2 6 2 3-2 6-2 3 2 6 2M4 24c3 0 3-2 6-2s3 2 6 2 3-2 6-2 3 2 6 2"/></svg>
+          <div class="b-txt"><h3>Piscina de vidro</h3><p>Aquecida, o ano inteiro, só de vocês.</p></div>
+        </article>
+        <article class="b-card b-feixe">
+          <img class="b-img" src="fotos/800/concept-noite.webp" alt="Deck à noite com o telão aceso, a piscina iluminada e o fire pit" loading="lazy" decoding="async">
+          <svg class="b-ico" viewBox="0 0 32 32" aria-hidden="true"><rect x="4" y="6" width="24" height="15" rx="1.5"/><path d="M11 27h10M16 21v6"/></svg>
+          <div class="b-txt"><h3>Cinema de 106"</h3><p>Telão ao ar livre, de frente para a piscina.</p></div>
+        </article>
+        <article class="b-card">
+          <img class="b-img" src="fotos/800/aurora-IMG_1134.webp" alt="Cadeiras de madeira em volta do fire pit, entre pedras e mata, ao entardecer" loading="lazy" decoding="async">
+          <svg class="b-ico" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 4c1 5 7 7 7 14a7 7 0 0 1-14 0c0-4 2-6 3-8 1 3 2 4 4 4-1-3-1-7 0-10Z"/><path d="M6 28h20"/></svg>
+          <div class="b-txt"><h3>Fire pit</h3><p>Fogo aceso no fim da tarde, entre as pedras.</p></div>
+        </article>
+        <article class="b-card">
+          <img class="b-img" src="fotos/800/aurora-teto.webp" alt="Quarto da Aurora com teto de vidro e cama de casal" loading="lazy" decoding="async">
+          <svg class="b-ico" viewBox="0 0 32 32" aria-hidden="true"><path d="M4 26 16 6l12 20Z"/><path d="m16 12 .9 1.9 2 .3-1.5 1.4.4 2-1.8-1-1.8 1 .4-2-1.5-1.4 2-.3Z"/></svg>
+          <div class="b-txt"><h3>Teto de vidro</h3><p>Na Aurora, o céu fica em cima da cama.</p></div>
+        </article>
+        <article class="b-card">
+          <img class="b-img" src="fotos/800/concept-IMG_0938.webp" alt="Cozinha com bancada de cimento queimado e vista para a mata" loading="lazy" decoding="async">
+          <svg class="b-ico" viewBox="0 0 32 32" aria-hidden="true"><path d="M7 12h16v7a7 7 0 0 1-7 7h-2a7 7 0 0 1-7-7Z"/><path d="M23 14h2a3 3 0 0 1 0 6h-2M11 4c-1 2 1 3 0 5M16 4c-1 2 1 3 0 5"/></svg>
+          <div class="b-txt"><h3>Cozinha equipada</h3><p>Nespresso, air fryer e o necessário para o café.</p></div>
+        </article>
+        <article class="b-card b-larga">
+          <img class="b-img" src="fotos/800/aurora-IMG_1138.webp" srcset="fotos/800/aurora-IMG_1138.webp 800w, fotos/1400/aurora-IMG_1138.webp 1400w" sizes="(min-width: 900px) 50vw, 100vw" alt="Hóspede deitada na rede suspensa sobre a piscina" loading="lazy" decoding="async">
+          <svg class="b-ico" viewBox="0 0 32 32" aria-hidden="true"><path d="M4 8v16M28 8v16M4 12c4 8 20 8 24 0"/></svg>
+          <div class="b-txt"><h3>Rede suspensa</h3><p>Deitar sobre a água, no meio da mata.</p></div>
+        </article>
+        <article class="b-card">
+          <img class="b-img" src="fotos/800/aurora-IMG_1078.webp" alt="Quarto da Aurora com o teto aberto para a mata" loading="lazy" decoding="async">
+          <svg class="b-ico" viewBox="0 0 32 32" aria-hidden="true"><path d="M4 13a17 17 0 0 1 24 0M8 17.5a11 11 0 0 1 16 0M12 22a5 5 0 0 1 8 0"/><circle cx="16" cy="26" r="1.2"/></svg>
+          <div class="b-txt"><h3>Wi‑Fi e Alexa</h3><p>Ar-condicionado, smart TV e tudo no comando de voz.</p></div>
+        </article>
+        <article class="b-card">
+          <img class="b-img" src="fotos/800/reel-porta.webp" alt="Porta de madeira da cabana, ao lado do muro de bambu" loading="lazy" decoding="async">
+          <svg class="b-ico" viewBox="0 0 32 32" aria-hidden="true"><circle cx="11" cy="16" r="6"/><path d="M17 16h12M25 16v4M21 16v3"/></svg>
+          <div class="b-txt"><h3>Entrada sem recepção</h3><p>Fechadura eletrônica: o código chega com a reserva.</p></div>
+        </article>
+        <article class="b-card b-par">
+          <img class="b-img" src="fotos/800/reel-gramado.webp" alt="Gramado com cadeiras de madeira e fire pit, entre pedras e plantas" loading="lazy" decoding="async">
+          <svg class="b-ico" viewBox="0 0 32 32" aria-hidden="true"><ellipse cx="16" cy="21" rx="6" ry="5"/><circle cx="8" cy="13" r="2.4"/><circle cx="13" cy="8.5" r="2.4"/><circle cx="19" cy="8.5" r="2.4"/><circle cx="24" cy="13" r="2.4"/></svg>
+          <div class="b-txt"><h3>Pet bem-vindo</h3><p>Taxa de higienização de R$ 200 por estadia.</p></div>
+        </article>
+        <article class="b-card b-par b-par2">
+          <img class="b-img" src="fotos/800/reel-casal.webp" alt="Cama de casal decorada com buquê de rosas vermelhas e balão de coração" loading="lazy" decoding="async">
+          <svg class="b-ico" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 27S4 20 4 12a6 6 0 0 1 12-1 6 6 0 0 1 12 1c0 8-12 15-12 15Z"/></svg>
+          <div class="b-txt"><h3>Só para casais</h3><p>Sem crianças nem bebês. Pensado para dois.</p></div>
+        </article>
       </div>
 
       <div class="galeria-topo">
@@ -456,6 +470,6 @@
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.3.26/dist/lenis.min.js"></script>
-<script src="js/site.js"></script>
+<script src="js/site.js?v=20261007b"></script>
 </body>
 </html>

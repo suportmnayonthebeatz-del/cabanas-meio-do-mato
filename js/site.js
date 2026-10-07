@@ -617,12 +617,8 @@
   });
 
   /* =========================================================
-     5. Comodidades: cartões, luz que segue o dedo/mouse
+     5. Comodidades: cartões com foto que sobem em sequência
      ========================================================= */
-  $$('.b-card').forEach(c => c.addEventListener('pointermove', e => {
-    const r = c.getBoundingClientRect();
-    c.style.setProperty('--mx', (e.clientX - r.left) + 'px'); c.style.setProperty('--my', (e.clientY - r.top) + 'px');
-  }));
   if (!reduz) {
     gsap.set('.bento > *', { autoAlpha: 0, y: 46 });
     ScrollTrigger.batch('.bento > *', {
