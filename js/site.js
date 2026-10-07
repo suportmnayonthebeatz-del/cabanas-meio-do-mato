@@ -464,6 +464,7 @@
   let liberado = false;
   async function libera() {
     if (liberado) return; liberado = true;
+    Filme.onProgresso(() => {}); // o resto do vídeo continua chegando: sem animar um contador que já saiu da tela
     mostraProgresso(1);
     await espera(reduz ? 100 : 450);
     document.body.classList.remove('is-loading');
