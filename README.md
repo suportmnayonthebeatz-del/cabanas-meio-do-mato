@@ -1,10 +1,14 @@
 # Cabanas Meio do Mato
 
-Site de uma página, guiado pelo scroll, para as cabanas de vidro Concept e Aurora em Barra de Guaratiba (RJ). O reel da marca avança conforme a rolagem e a reserva sai pronta para o WhatsApp.
+Site de uma página para as cabanas de vidro Aurora e Concept, em Barra de Guaratiba (RJ). Feito primeiro para o celular.
 
-- `index.html`: o site inteiro (HTML, CSS e JS puros)
-- `reel.mp4`: reel com keyframe em todo quadro, para o scrub
-- `poster.jpg`: primeiro quadro do reel
-- `fotos/`: fotos do site oficial
+- `index.html`: estrutura e textos
+- `css/site.css`: visual (cores, fontes, layout do celular e do computador)
+- `js/site.js`: movimento (GSAP + ScrollTrigger + SplitText + Lenis, pelo CDN jsDelivr) e a reserva pelo WhatsApp
+- `media/filme/m` e `media/filme/d`: 129 quadros do reel (480 px para celular, 720 px para computador), desenhados num canvas conforme a rolagem
+- `media/cenas`: trechos curtos do reel em loop (ida e volta), com a primeira imagem de cada um
+- `fotos/800` e `fotos/1400`: fotos do site oficial em dois tamanhos
 
-Preço (R$ 1.440/noite) e alguns textos ainda são provisórios.
+Para ver com todo o movimento num computador com "menos movimento" ligado, abra o endereço com `?movimento` no final.
+
+Preço (R$ 1.440/noite) e alguns textos ainda são de referência.
