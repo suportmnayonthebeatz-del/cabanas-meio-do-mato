@@ -137,111 +137,30 @@
   }
 
   /* =========================================================
-     1. FILME — quadros do reel num canvas
-     Os quadros chegam como arquivos (fetch → Blob) e são decodificados fora da linha principal
-     (createImageBitmap) só numa janela em volta da posição atual. Desenhar vira uma cópia rápida,
-     sem travar a rolagem. Um quadro a cada 6 fica sempre pronto, como reserva para saltos.
+     1. FILME — a abertura avança com a rolagem, desenhada num canvas
+     Motor principal: o vídeo (H.264 cru + índice de quadros) é decodificado pelo próprio site
+     com WebCodecs, usando o chip de vídeo do aparelho: 30 quadros por segundo, de 12 em 12
+     (um "grupo" começa sempre num quadro-chave), guardando só os grupos perto da posição atual.
+     Reserva: se o navegador não tiver WebCodecs ou algo falhar, troca sozinho para a sequência
+     de fotos (media/heroi/m e d).
      ========================================================= */
   const Filme = (() => {
     const cv = $('#filmeCanvas'), ctx = cv.getContext('2d', { alpha: false });
-    const N = 149;
     const conj = Math.min(innerWidth, innerHeight * 1.2) >= 900 || innerWidth >= 1100 ? 'd' : 'm';
-    // uma tomada contínua (porta → deck → piscina → cabana) e a vista final, que entra por fusão
-    const SEG = [
-      { a: 1, b: 142, w: 7.6, z0: 1, z1: 1 },
-      { a: 143, b: 149, w: 1.4, z0: 1.16, z1: 1 },
-    ];
-    let acc = 0; SEG.forEach(s => { s.s = acc; acc += s.w; s.e = acc; });
-    const TOTAL = acc, FUNDE = .35;
-    const FRENTE = conj === 'm' ? 30 : 40, TRAS = 14, INICIAIS = 40;
-    const ancora = n => n % 6 === 1 || n === N || SEG.some(s => n === s.a || n === s.b);
-    const url = n => `media/heroi/${conj}/q${String(n).padStart(3, '0')}.webp`;
-    const blobs = new Array(N + 1), bmps = new Array(N + 1), falhou = new Uint8Array(N + 1);
-    const baixando = new Set(), decod = new Set();
+    const DUR = 13.666; // segundos do vídeo da abertura (as legendas usam esta escala)
     const tiny = document.createElement('canvas'); tiny.width = 18; tiny.height = 32;
     const tctx = tiny.getContext('2d');
     const estado = { t: 0 };
-    let W = 0, H = 0, dpr = 1, painel = false, P = null, sujo = true, ultimoT = -1, ativo = true;
-    let alvo = 1, dir = 1;
-
-    /* --- download: posição atual primeiro, depois começo, âncoras e o resto --- */
-    const base = [];
-    {
-      const vis = new Set(), poe = n => { if (!vis.has(n)) { vis.add(n); base.push(n); } };
-      for (let n = 1; n <= INICIAIS; n++) poe(n);
-      for (let n = 1; n <= N; n++) if (ancora(n)) poe(n);
-      for (let n = 1; n <= N; n++) poe(n);
-    }
-    const essenciais = new Set();
-    for (let n = 1; n <= N; n++) if (n <= INICIAIS || ancora(n)) essenciais.add(n);
-    const totalEss = essenciais.size;
-    let iBase = 0, avisaProgresso = () => {}, resolvePronto;
+    let W = 0, H = 0, dpr = 0, painel = false, P = null, sujo = true, ultimoT = -1, ativo = true, ultimoFundo = 0;
+    let motor = null, avisaProgresso = () => {}, resolvePronto;
+    const contagem = params.has('teste') ? { exato: 0, perto: 0 } : null;
     const pronto = new Promise(r => { resolvePronto = r; });
-    const confere = () => { avisaProgresso(1 - essenciais.size / totalEss); if (!essenciais.size && bmps[1]) resolvePronto(); };
 
-    function proximo() {
-      for (let k = 0; k <= FRENTE; k++) {
-        const n = alvo + dir * k; if (n < 1 || n > N) break;
-        if (!blobs[n] && !falhou[n] && !baixando.has(n)) return n;
-      }
-      while (iBase < base.length) { const n = base[iBase++]; if (!blobs[n] && !falhou[n] && !baixando.has(n)) return n; }
-      return 0;
-    }
-    function bombeia() {
-      while (baixando.size < 6) {
-        const n = proximo(); if (!n) return;
-        baixando.add(n);
-        fetch(url(n)).then(r => (r.ok ? r.blob() : Promise.reject(r.status)))
-          .then(b => { blobs[n] = b; }, () => { falhou[n] = 1; })
-          .finally(() => { baixando.delete(n); essenciais.delete(n); agenda(); confere(); bombeia(); });
-      }
-    }
-
-    /* --- decodificação em janela --- */
-    function imagem(b) {
-      return new Promise((res, rej) => {
-        const im = new Image(); im.onerror = rej;
-        im.onload = () => (im.decode ? im.decode().catch(() => {}) : Promise.resolve()).then(() => res(im));
-        im.src = URL.createObjectURL(b);
-      });
-    }
-    const criaBitmap = window.createImageBitmap ? b => createImageBitmap(b).catch(() => imagem(b)) : imagem;
-    const quer = n => ancora(n) || (dir > 0 ? n >= alvo - TRAS && n <= alvo + FRENTE : n >= alvo - FRENTE && n <= alvo + TRAS);
-    function agenda() {
-      for (let n = 1; n <= N; n++) if (bmps[n] && !quer(n)) { if (bmps[n].close) bmps[n].close(); bmps[n] = null; }
-      const fila = [alvo];
-      for (let k = 1; k <= 10; k++) fila.push(alvo + dir * k);
-      for (let k = 1; k <= 5; k++) fila.push(alvo - dir * k);
-      for (let k = 11; k <= FRENTE; k++) fila.push(alvo + dir * k);
-      for (let k = 6; k <= TRAS; k++) fila.push(alvo - dir * k);
-      for (let n = 1; n <= N; n++) if (ancora(n)) fila.push(n);
-      for (const n of fila) {
-        if (decod.size >= 3) break;
-        if (n < 1 || n > N || bmps[n] || decod.has(n) || !blobs[n]) continue;
-        decod.add(n);
-        criaBitmap(blobs[n])
-          .then(b => { if (quer(n)) { bmps[n] = b; sujo = true; } else if (b.close) b.close(); }, () => {})
-          .finally(() => { decod.delete(n); confere(); agenda(); });
-      }
-    }
-    function perto(n, s) {
-      if (bmps[n]) return bmps[n];
-      for (let d = 1; d < N; d++) {
-        const a = n - d, b = n + d;
-        if (a >= s.a && bmps[a]) return bmps[a];
-        if (b <= s.b && bmps[b]) return bmps[b];
-        if (a < s.a && b > s.b) break;
-      }
-      for (let d = 1; d < N; d++) { if (n - d >= 1 && bmps[n - d]) return bmps[n - d]; if (n + d <= N && bmps[n + d]) return bmps[n + d]; }
-      return null;
-    }
-
-    /* --- desenho --- */
-    function medidas() {
+    /* --- desenho comum --- */
+    function medidas(forca) {
       const r = cv.getBoundingClientRect();
-      // o quadro do celular tem 480 px: resolução maior no canvas só gastaria processamento
-      const nd = Math.min(conj === 'm' ? 1.4 : 1.6, devicePixelRatio || 1);
-      if (Math.abs(r.width - W) < 1 && Math.abs(r.height - H) < 1 && nd === dpr) return;
+      const nd = Math.min(motor && motor.dprMax ? motor.dprMax : 2, devicePixelRatio || 1);
+      if (!forca && Math.abs(r.width - W) < 1 && Math.abs(r.height - H) < 1 && nd === dpr) return;
       W = r.width; H = r.height; dpr = nd;
       cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -259,8 +178,14 @@
       const iw = im.naturalWidth || im.width, ih = im.naturalHeight || im.height;
       ctx.globalAlpha = alfa;
       if (painel) {
-        tctx.drawImage(im, 0, 0, tiny.width, tiny.height);
-        tctx.fillStyle = 'rgba(8,11,9,.5)'; tctx.fillRect(0, 0, tiny.width, tiny.height);
+        // fundo desfocado: atualizado no máximo 5 vezes por segundo (copiar um quadro do chip de vídeo
+        // para o canvas pequeno é lento, e ninguém percebe a diferença num fundo tão borrado)
+        const agora = performance.now();
+        if (alfa === 1 && agora - ultimoFundo > 200) {
+          ultimoFundo = agora;
+          tctx.globalAlpha = 1; tctx.drawImage(im, 0, 0, tiny.width, tiny.height);
+          tctx.fillStyle = 'rgba(8,11,9,.5)'; tctx.fillRect(0, 0, tiny.width, tiny.height);
+        }
         cobre(tiny, tiny.width, tiny.height, 0, 0, W, H, 1.2);
         ctx.save(); ctx.beginPath();
         if (ctx.roundRect) ctx.roundRect(P.x, P.y, P.w, P.h, 14); else ctx.rect(P.x, P.y, P.w, P.h);
@@ -268,35 +193,240 @@
       } else cobre(im, iw, ih, 0, 0, W, H, z);
       ctx.globalAlpha = 1;
     }
-    function segmento(i, u, alfa, principal) {
-      const s = SEG[i], pos = s.a + u * (s.b - s.a), f0 = Math.floor(pos), fr = pos - f0;
-      if (principal && f0 !== alvo) { dir = f0 > alvo ? 1 : -1; alvo = f0; agenda(); bombeia(); }
-      const z = s.z0 + (s.z1 - s.z0) * suave(u);
-      pinta(perto(f0, s), alfa, z);
-      // entre dois quadros vizinhos, funde um no outro: o movimento fica contínuo mesmo rolando devagar
-      if (fr > .03 && f0 < s.b && bmps[f0] && bmps[f0 + 1]) pinta(bmps[f0 + 1], alfa * fr, z);
+
+    /* =========== motor 1: vídeo decodificado com WebCodecs =========== */
+    function motorVideo() {
+      let meta, dados, dec, F, FPS, alvo = 0, dir = 1, ocupado = false, morto = false;
+      let recebidos = 0, completo = false;
+      const LIMIAR = .55; // abre a página com pouco mais da metade do vídeo; o resto chega enquanto assiste
+      const inicios = [];          // primeiro quadro de cada grupo (sempre quadro-chave)
+      const cache = new Map();     // quadro → ImageBitmap
+      const prontos = new Set(), pendentes = [];
+      const grupoDe = i => { let g = 0; while (g + 1 < inicios.length && inicios[g + 1] <= i) g++; return g; };
+      const quer = g => { const c = grupoDe(alvo); return g === c || g === c + dir || g === c + 2 * dir || g === c - dir; };
+
+      // baixa em pedaços: cada grupo de quadros pode ser decodificado assim que os bytes dele chegam
+      async function baixa(url, total, aviso) {
+        const r = await fetch(url); if (!r.ok) throw new Error('download ' + r.status);
+        if (!r.body || !r.body.getReader) { dados = new Uint8Array(await r.arrayBuffer()); recebidos = dados.length; completo = true; aviso(); return; }
+        dados = new Uint8Array(total); const leitor = r.body.getReader();
+        for (;;) {
+          const { done, value } = await leitor.read(); if (done) break;
+          if (recebidos + value.length > dados.length) { const maior = new Uint8Array((recebidos + value.length) * 1.2 | 0); maior.set(dados.subarray(0, recebidos)); dados = maior; }
+          dados.set(value, recebidos); recebidos += value.length; aviso();
+        }
+        completo = true; aviso();
+      }
+      const fimDoGrupo = g => { const q = meta.frames[(g + 1 < inicios.length ? inicios[g + 1] : F) - 1]; return q[0] + q[1]; };
+      const disponivel = g => completo || fimDoGrupo(g) <= recebidos;
+      function saida(frame) {
+        const i = Math.round(frame.timestamp * FPS / 1e6);
+        if (morto || !quer(grupoDe(i))) { frame.close(); return; }
+        // cópia sem redimensionar: pedir tamanho menor aqui força a placa de vídeo a parar a cada grupo
+        const p = createImageBitmap(frame).then(b => {
+          frame.close();
+          if (morto || !quer(grupoDe(i))) { b.close(); return; }
+          const velho = cache.get(i); if (velho) velho.close();
+          cache.set(i, b); sujo = true;
+        }, e => { frame.close(); throw e; });
+        pendentes.push(p);
+      }
+      async function decodifica(g) {
+        ocupado = true;
+        const a = inicios[g], b = g + 1 < inicios.length ? inicios[g + 1] : F;
+        for (let i = a; i < b; i++) {
+          const [off, len] = meta.frames[i];
+          dec.decode(new EncodedVideoChunk({ type: i === a ? 'key' : 'delta', timestamp: Math.round(i * 1e6 / FPS), data: dados.subarray(off, off + len) }));
+        }
+        await dec.flush();
+        await Promise.all(pendentes.splice(0));
+        ocupado = false;
+        if (quer(g)) prontos.add(g);
+        else for (let i = a; i < b; i++) { const bm = cache.get(i); if (bm) { bm.close(); cache.delete(i); } }
+      }
+      async function bombeia() {
+        if (ocupado || morto || !dec) return;
+        const c = grupoDe(alvo);
+        const fila = [c, c + dir, c + 2 * dir, c - dir].filter(g => g >= 0 && g < inicios.length && !prontos.has(g) && disponivel(g));
+        if (!fila.length) return;
+        try { await decodifica(fila[0]); } catch (e) { return falha(e); }
+        bombeia();
+      }
+      function libera() {
+        for (const g of [...prontos]) {
+          if (quer(g)) continue;
+          prontos.delete(g);
+          const a = inicios[g], b = g + 1 < inicios.length ? inicios[g + 1] : F;
+          for (let i = a; i < b; i++) { const bm = cache.get(i); if (bm) { bm.close(); cache.delete(i); } }
+        }
+      }
+      function falha(e) {
+        if (morto) return; morto = true;
+        try { dec && dec.state !== 'closed' && dec.close(); } catch (x) { /* já fechado */ }
+        cache.forEach(b => b.close()); cache.clear();
+        console.warn('Abertura: WebCodecs indisponível, usando as fotos.', e && e.message);
+        trocaMotor(motorImagens());
+      }
+      return {
+        dprMax: conj === 'm' ? 2 : 1.5,
+        async inicia() {
+          if (!('VideoDecoder' in window) || !('EncodedVideoChunk' in window)) throw new Error('sem WebCodecs');
+          meta = await (await fetch('media/heroi/video.json')).json();
+          const sup = await VideoDecoder.isConfigSupported({ codec: meta.codec, optimizeForLatency: true });
+          if (!sup.supported) throw new Error('codec ' + meta.codec);
+          FPS = meta.fps; F = meta.frames.length;
+          meta.frames.forEach((q, i) => { if (q[2]) inicios.push(i); });
+          let comeca; const podeComecar = new Promise(r => { comeca = r; });
+          baixa('media/heroi/video.h264', meta.bytes, () => {
+            avisaProgresso(Math.min(1, recebidos / (meta.bytes * LIMIAR)) * .96);
+            if (completo || recebidos >= meta.bytes * LIMIAR) comeca();
+            bombeia();
+          }).catch(falha);
+          await podeComecar;
+          if (morto) return;
+          dec = new VideoDecoder({ output: saida, error: falha });
+          dec.configure({ codec: meta.codec, optimizeForLatency: true });
+          await decodifica(0);
+          if (!cache.size) throw new Error('nenhum quadro decodificado');
+          avisaProgresso(1); bombeia();
+        },
+        desenha(t) {
+          if (morto) return;
+          const i = clamp(Math.round(t * FPS), 0, F - 1);
+          if (i !== alvo) { dir = i > alvo ? 1 : -1; alvo = i; libera(); bombeia(); }
+          let im = cache.get(i);
+          if (contagem) contagem[im ? 'exato' : 'perto']++;
+          for (let d = 1; !im && d < 48; d++) im = cache.get(i - d * dir) || cache.get(i + d * dir);
+          if (!im && cache.size) im = cache.values().next().value;
+          pinta(im, 1, 1);
+        },
+        get morto() { return morto; },
+        falha,
+      };
+    }
+
+    /* =========== motor 2 (reserva): sequência de fotos =========== */
+    function motorImagens() {
+      const N = 149;
+      // uma tomada contínua (porta → deck → piscina → cabana) e a vista final, que entra por fusão
+      const SEG = [{ a: 1, b: 142, w: 7.6, z0: 1, z1: 1 }, { a: 143, b: 149, w: 1.4, z0: 1.16, z1: 1 }];
+      let acc = 0; SEG.forEach(s => { s.s = acc; acc += s.w; s.e = acc; });
+      const TOTAL = acc, FUNDE = .35, FRENTE = conj === 'm' ? 30 : 40, TRAS = 14, INICIAIS = 40;
+      const ancora = n => n % 6 === 1 || n === N || SEG.some(s => n === s.a || n === s.b);
+      const url = n => `media/heroi/${conj}/q${String(n).padStart(3, '0')}.webp`;
+      const blobs = new Array(N + 1), bmps = new Array(N + 1), falhou = new Uint8Array(N + 1);
+      const baixando = new Set(), decod = new Set();
+      let alvo = 1, dir = 1, iBase = 0, fim = () => {};
+      const base = [];
+      { const vis = new Set(), poe = n => { if (!vis.has(n)) { vis.add(n); base.push(n); } };
+        for (let n = 1; n <= INICIAIS; n++) poe(n);
+        for (let n = 1; n <= N; n++) if (ancora(n)) poe(n);
+        for (let n = 1; n <= N; n++) poe(n); }
+      const essenciais = new Set(); for (let n = 1; n <= N; n++) if (n <= INICIAIS || ancora(n)) essenciais.add(n);
+      const totalEss = essenciais.size;
+      const confere = () => { avisaProgresso(1 - essenciais.size / totalEss); if (!essenciais.size && bmps[1]) fim(); };
+      function proximo() {
+        for (let k = 0; k <= FRENTE; k++) { const n = alvo + dir * k; if (n < 1 || n > N) break; if (!blobs[n] && !falhou[n] && !baixando.has(n)) return n; }
+        while (iBase < base.length) { const n = base[iBase++]; if (!blobs[n] && !falhou[n] && !baixando.has(n)) return n; }
+        return 0;
+      }
+      function bombeia() {
+        while (baixando.size < 6) {
+          const n = proximo(); if (!n) return;
+          baixando.add(n);
+          fetch(url(n)).then(r => (r.ok ? r.blob() : Promise.reject(r.status)))
+            .then(b => { blobs[n] = b; }, () => { falhou[n] = 1; })
+            .finally(() => { baixando.delete(n); essenciais.delete(n); agenda(); confere(); bombeia(); });
+        }
+      }
+      function imagem(b) {
+        return new Promise((res, rej) => {
+          const im = new Image(); im.onerror = rej;
+          im.onload = () => (im.decode ? im.decode().catch(() => {}) : Promise.resolve()).then(() => res(im));
+          im.src = URL.createObjectURL(b);
+        });
+      }
+      const criaBitmap = window.createImageBitmap ? b => createImageBitmap(b).catch(() => imagem(b)) : imagem;
+      const quer = n => ancora(n) || (dir > 0 ? n >= alvo - TRAS && n <= alvo + FRENTE : n >= alvo - FRENTE && n <= alvo + TRAS);
+      function agenda() {
+        for (let n = 1; n <= N; n++) if (bmps[n] && !quer(n)) { if (bmps[n].close) bmps[n].close(); bmps[n] = null; }
+        const fila = [alvo];
+        for (let k = 1; k <= 10; k++) fila.push(alvo + dir * k);
+        for (let k = 1; k <= 5; k++) fila.push(alvo - dir * k);
+        for (let k = 11; k <= FRENTE; k++) fila.push(alvo + dir * k);
+        for (let k = 6; k <= TRAS; k++) fila.push(alvo - dir * k);
+        for (let n = 1; n <= N; n++) if (ancora(n)) fila.push(n);
+        for (const n of fila) {
+          if (decod.size >= 3) break;
+          if (n < 1 || n > N || bmps[n] || decod.has(n) || !blobs[n]) continue;
+          decod.add(n);
+          criaBitmap(blobs[n])
+            .then(b => { if (quer(n)) { bmps[n] = b; sujo = true; } else if (b.close) b.close(); }, () => {})
+            .finally(() => { decod.delete(n); confere(); agenda(); });
+        }
+      }
+      function perto(n, s) {
+        if (bmps[n]) return bmps[n];
+        for (let d = 1; d < N; d++) {
+          const a = n - d, b = n + d;
+          if (a >= s.a && bmps[a]) return bmps[a];
+          if (b <= s.b && bmps[b]) return bmps[b];
+          if (a < s.a && b > s.b) break;
+        }
+        for (let d = 1; d < N; d++) { if (n - d >= 1 && bmps[n - d]) return bmps[n - d]; if (n + d <= N && bmps[n + d]) return bmps[n + d]; }
+        return null;
+      }
+      function segmento(i, u, alfa, principal) {
+        const s = SEG[i], pos = s.a + u * (s.b - s.a), f0 = Math.floor(pos), fr = pos - f0;
+        if (principal && f0 !== alvo) { dir = f0 > alvo ? 1 : -1; alvo = f0; agenda(); bombeia(); }
+        const z = s.z0 + (s.z1 - s.z0) * suave(u);
+        pinta(perto(f0, s), alfa, z);
+        if (fr > .03 && f0 < s.b && bmps[f0] && bmps[f0 + 1]) pinta(bmps[f0 + 1], alfa * fr, z);
+      }
+      return {
+        dprMax: conj === 'm' ? 1.4 : 1.6,
+        inicia() { return new Promise(r => { fim = r; bombeia(); }); },
+        desenha(t) {
+          const tt = clamp(t / DUR) * TOTAL;
+          let i = SEG.findIndex(s => tt < s.e); if (i < 0) i = SEG.length - 1;
+          const s = SEG[i], u = clamp((tt - s.s) / s.w);
+          segmento(i, u, 1, true);
+          if (i < SEG.length - 1 && tt > s.e - FUNDE) segmento(i + 1, 0, suave((tt - (s.e - FUNDE)) / FUNDE), false);
+        },
+      };
+    }
+
+    /* --- escolha do motor --- */
+    function trocaMotor(m) {
+      motor = m; medidas(true);
+      m.inicia().then(resolvePronto, e => { console.warn(e); resolvePronto(); });
     }
     function desenha() {
-      const t = clamp(estado.t, 0, TOTAL);
-      let i = SEG.findIndex(s => t < s.e); if (i < 0) i = SEG.length - 1;
-      const s = SEG[i], u = clamp((t - s.s) / s.w);
       ctx.fillStyle = '#0b0f0c'; ctx.fillRect(0, 0, W, H);
-      segmento(i, u, 1, true);
-      if (i < SEG.length - 1 && t > s.e - FUNDE) segmento(i + 1, 0, suave((t - (s.e - FUNDE)) / FUNDE), false);
+      if (motor) motor.desenha(clamp(estado.t, 0, DUR));
     }
     function tick() {
       if (!ativo) return;
       if (sujo || estado.t !== ultimoT) { ultimoT = estado.t; sujo = false; desenha(); }
     }
-    medidas();
-    bombeia();
+    const usaVideo = 'VideoDecoder' in window && !params.has('fotos');
+    if (contagem) window.__abertura = { contagem, motor: () => (motor && motor.dprMax === 2 || motor && motor.falha ? 'video' : 'fotos') };
+    if (usaVideo) {
+      const mv = motorVideo(); motor = mv; medidas(true);
+      mv.inicia().then(resolvePronto, e => mv.falha(e));
+    } else trocaMotor(motorImagens());
     gsap.ticker.add(tick);
     return {
-      TOTAL, estado, pronto, medidas,
+      TOTAL: DUR, estado, pronto,
+      medidas: () => medidas(false),
       onProgresso: f => { avisaProgresso = f; },
       ativa: v => { ativo = v; if (v) sujo = true; },
     };
   })();
+
+  // o resto monta depois das fontes: separar o texto em palavras antes delas carregarem erra as medidas
+  const fontes = document.fonts ? Promise.race([document.fonts.ready, espera(3000)]) : Promise.resolve();
+  fontes.then(() => {
 
   /* ---------- texto em palavras com máscara ---------- */
   const palavras = (el, chars = false) => {
@@ -317,14 +447,14 @@
   function entrada() {
     const tl = gsap.timeline();
     if (reduz) {
-      tl.from('#capTitulo, #topo, #dica', { autoAlpha: 0, duration: .8, clearProps: 'opacity,visibility' });
+      tl.from('#capTitulo > *, #topo, #dica > *', { autoAlpha: 0, duration: .8, clearProps: 'opacity,visibility' });
       return tl;
     }
     tl.fromTo('#filmeCanvas', { scale: 1.14 }, { scale: 1, duration: 2.4, ease: 'expo.out' }, 0);
     if (tituloSplit) tl.from(tituloSplit.chars, { yPercent: 118, duration: 1.5, stagger: .045, ease: 'expo.out' }, .15);
     tl.from('#capTitulo .reveal', { autoAlpha: 0, y: 20, duration: 1.1, stagger: .12, ease: 'power3.out' }, .5)
       .from('#topo', { autoAlpha: 0, y: -18, duration: 1.1, ease: 'power3.out', clearProps: 'transform,opacity,visibility' }, .55)
-      .from('#dica', { autoAlpha: 0, duration: 1.2 }, .9);
+      .from('#dica > *', { autoAlpha: 0, duration: 1.2 }, .9);
     return tl;
   }
 
@@ -590,4 +720,5 @@
   });
   if (document.fonts) document.fonts.ready.then(() => ScrollTrigger.refresh());
   addEventListener('load', () => ScrollTrigger.refresh());
+  });
 })();
