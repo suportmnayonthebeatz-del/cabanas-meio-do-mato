@@ -25,7 +25,7 @@
 
   /* ---------- reserva (funciona mesmo sem GSAP) ---------- */
   const Reserva = (() => {
-    const WHATS = '5521967957067';
+    const WHATS = '5521996273547';
     const PRECO = { aurora: 1440, concept: 1440 }; // valor de referência, a confirmar com o anfitrião
     const NOME = { aurora: 'Cabana Aurora', concept: 'Cabana Concept' };
     const AIRBNB = { aurora: 'https://www.airbnb.com.br/rooms/1597457829082281356', concept: 'https://www.airbnb.com.br/rooms/1597493917478918893' };
