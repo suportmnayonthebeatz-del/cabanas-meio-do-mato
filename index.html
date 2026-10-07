@@ -1,0 +1,697 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Cabanas Meio do Mato</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gloock&family=Hanken+Grotesk:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a fixed cinematic stage (the reel stand-in) under a long scroll; reading chapters slide over it on opaque fog or forest grounds. */
+:root{
+  --mata:#111914;      /* deep forest, night ground */
+  --mata-2:#1a241d;    /* raised forest surface */
+  --nevoa:#dde2d7;     /* fog paper, reading ground */
+  --tinta:#16201a;     /* ink on fog */
+  --liquen:#8f9c84;    /* lichen, secondary text and rules */
+  --ipe:#e3b23c;       /* ipê-amarelo, the one accent: booking */
+  --claro:#eef0e9;     /* text on forest */
+  --display:"Gloock","Iowan Old Style","Georgia",serif;
+  --body:"Hanken Grotesk","Helvetica Neue",Arial,sans-serif;
+  --mono:"DM Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --gutter:clamp(16px,4vw,56px);
+  color-scheme:dark;
+}
+html{overflow-x:clip;scroll-behavior:auto}
+body{background:var(--mata);color:var(--claro);font-family:var(--body);font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--ipe);outline-offset:3px}
+h1,h2,h3{font-family:var(--display);font-weight:400;text-wrap:balance;margin:0;letter-spacing:-.01em}
+p{margin:0}
+.mono{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.tag{display:inline-block;font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;border:1px solid currentColor;border-radius:99px;padding:2px 8px;opacity:.75;white-space:nowrap}
+
+/* stage */
+#stage{position:fixed;inset:0;width:100%;height:100lvh;display:block;z-index:0}
+.grain{position:fixed;inset:0;pointer-events:none;z-index:60;opacity:.07;mix-blend-mode:overlay}
+main{position:relative;z-index:1}
+main>section{scroll-margin-top:72px}
+.paper .fine{color:#5d6b55}
+
+/* header */
+.top{position:fixed;left:0;right:0;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:calc(env(safe-area-inset-top,0px) + 14px) var(--gutter) 14px;color:var(--claro);transition:color .4s,background .4s}
+.top::before{content:"";position:absolute;inset:0;background:linear-gradient(rgba(10,14,11,.55),rgba(10,14,11,0));pointer-events:none;transition:opacity .4s}
+.top.light{color:var(--tinta)}
+.top.light::before{opacity:1;background:var(--nevoa)}
+.top>*{position:relative}
+.brand{display:flex;flex-direction:column;line-height:1;text-decoration:none}
+.brand small{font-family:var(--mono);font-size:10px;letter-spacing:.32em;opacity:.8}
+.brand span{font-family:var(--display);font-size:24px;margin-top:4px}
+.chap{display:flex;align-items:center;gap:10px;min-width:0}
+.chap button{background:none;border:0;color:inherit;font:inherit;cursor:pointer;padding:6px 0;display:flex;gap:10px;align-items:center}
+.chap .num{font-variant-numeric:tabular-nums}
+.btn{display:inline-flex;align-items:center;gap:8px;background:var(--ipe);color:#1b1608;border:0;border-radius:99px;padding:11px 20px;font-family:var(--body);font-weight:600;font-size:15px;text-decoration:none;cursor:pointer;white-space:nowrap}
+.btn:hover{filter:brightness(1.07)}
+.top .btn{padding:9px 16px;font-size:14px}
+.bar{position:fixed;left:0;top:0;height:2px;background:var(--ipe);z-index:51;width:0}
+.proto{position:fixed;right:var(--gutter);bottom:calc(env(safe-area-inset-bottom,0px) + 16px);z-index:40;font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;background:rgba(17,25,20,.78);color:var(--claro);border:1px solid rgba(238,240,233,.25);border-radius:99px;padding:6px 12px;backdrop-filter:blur(6px)}
+
+/* chapter index */
+.index{position:fixed;inset:0;z-index:70;background:rgba(10,14,11,.94);color:var(--claro);padding:calc(env(safe-area-inset-top,0px) + 80px) var(--gutter) 40px;overflow:auto}
+.index ol{list-style:none;margin:0 auto;padding:0;max-width:760px;display:grid;gap:4px}
+.index a{display:grid;grid-template-columns:56px 1fr;align-items:baseline;gap:12px;text-decoration:none;padding:10px 0;border-bottom:1px solid rgba(238,240,233,.12)}
+.index a span:last-child{font-family:var(--display);font-size:clamp(26px,5vw,40px);line-height:1.1}
+.index a:hover span:last-child{color:var(--ipe)}
+.index .close{position:absolute;top:calc(env(safe-area-inset-top,0px) + 18px);right:var(--gutter);background:none;border:1px solid rgba(238,240,233,.3);color:var(--claro);border-radius:99px;padding:8px 16px;font:inherit;cursor:pointer}
+
+/* hero */
+.hero{min-height:100svh;display:grid;align-content:end;padding:120px var(--gutter) calc(env(safe-area-inset-bottom,0px) + 72px);position:relative}
+.hero h1{font-size:clamp(56px,13vw,184px);line-height:.88;max-width:11ch}
+.hero .lede{max-width:34ch;margin-top:24px;font-size:clamp(17px,1.6vw,20px);color:rgba(238,240,233,.86)}
+.hero .meta{display:flex;flex-wrap:wrap;gap:8px 24px;margin-bottom:28px;color:rgba(238,240,233,.8)}
+.hint{display:flex;align-items:center;gap:12px;margin-top:40px;color:rgba(238,240,233,.75)}
+.hint i{width:1px;height:44px;background:linear-gradient(var(--claro),transparent);animation:drip 2.4s ease-in-out infinite;transform-origin:top}
+@keyframes drip{0%{transform:scaleY(0)}50%{transform:scaleY(1)}100%{transform:scaleY(1);opacity:0}}
+
+/* scrub chapters */
+.scrub{position:relative}
+.pin{position:sticky;top:0;height:100svh;overflow:hidden}
+.cap{position:absolute;left:var(--gutter);right:var(--gutter);max-width:640px;opacity:0;transform:translateY(16px);transition:none;will-change:opacity,transform}
+.cap.r{left:auto;text-align:right}
+.cap .mono{display:block;margin-bottom:12px;color:var(--ipe)}
+.cap h2{font-size:clamp(34px,6.4vw,84px);line-height:.98;text-shadow:0 2px 30px rgba(0,0,0,.35)}
+.cap p{margin-top:14px;max-width:36ch;font-size:18px;color:rgba(238,240,233,.9);text-shadow:0 1px 16px rgba(0,0,0,.5)}
+.cap.r p{margin-left:auto}
+.tc{position:absolute;left:var(--gutter);bottom:calc(env(safe-area-inset-bottom,0px) + 20px);display:flex;gap:14px;align-items:center;color:rgba(238,240,233,.78);font-variant-numeric:tabular-nums}
+.tc b{font-weight:500;color:var(--claro)}
+.tc .line{width:min(28vw,220px);height:1px;background:rgba(238,240,233,.25);position:relative}
+.tc .line i{position:absolute;left:0;top:-1px;height:3px;background:var(--claro);width:0}
+
+@media (min-aspect-ratio:17/20) and (min-width:761px){
+  .scrub .cap{max-width:calc(50vw - 56.25svh/2 - var(--gutter) - 24px)}
+  .scrub .cap h2{font-size:clamp(30px,3.4vw,56px)}
+}
+/* reading chapters */
+.paper{background:var(--nevoa);color:var(--tinta);position:relative}
+.forest{background:var(--mata);color:var(--claro);position:relative}
+.wrap{max-width:1240px;margin:0 auto;padding-inline:var(--gutter);padding-block:clamp(88px,12vw,160px)}
+.eyebrow{display:flex;gap:14px;align-items:baseline;margin-bottom:28px;color:var(--liquen)}
+.paper .eyebrow{color:#5d6b55}
+.eyebrow b{font-weight:500;color:inherit}
+
+.manifesto p.big{font-family:var(--display);font-size:clamp(32px,5.2vw,72px);line-height:1.06;max-width:20ch}
+.manifesto .w{opacity:.2;transition:opacity .25s linear}
+.manifesto .sign{margin-top:48px;display:flex;gap:24px;flex-wrap:wrap;color:#5d6b55}
+
+.interior h2{font-size:clamp(36px,5vw,64px);line-height:1.02;max-width:16ch}
+.grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:clamp(12px,2vw,24px);margin-top:56px}
+.ph{position:relative;border-radius:2px;overflow:hidden;min-height:220px;display:flex;align-items:flex-end;padding:14px;color:var(--claro)}
+.ph .lab{position:relative;display:flex;justify-content:space-between;gap:12px;width:100%;align-items:flex-end}
+.ph::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 55%,rgba(10,14,11,.55))}
+.ph .lab{z-index:1}
+.fig{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;margin-top:10px;color:#4e5a47;display:flex;justify-content:space-between;gap:12px}
+.fig span:last-child{text-align:right}
+.ph{aspect-ratio:3/4;max-width:100%;min-height:0;padding:0}
+.ph::after{display:none}
+.g1{grid-column:1/7}.g1 .ph{aspect-ratio:4/5}
+.g2{grid-column:8/13;align-self:end}
+.g3{grid-column:2/6}
+.g4{grid-column:7/13}.g4 .ph{aspect-ratio:4/5}
+.g5{grid-column:1/5}.g5 .ph{aspect-ratio:1/1}
+.g6{grid-column:6/11}
+.note{grid-column:1/13;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;border-top:1px solid rgba(22,32,26,.2);padding-top:24px;margin-top:24px}
+.note div{min-width:0}
+.note h3{font-size:22px;margin-bottom:6px}
+.note p{color:#3d4838;font-size:15.5px}
+.ph{background:var(--mata-2)}
+.ph canvas,.ph img,.media canvas,.media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.media{position:relative;aspect-ratio:5/4;max-width:100%;overflow:hidden;background:var(--mata)}
+.has-foto .tag{display:none}
+
+/* cabins: horizontal */
+.hs{position:relative;background:var(--mata-2)}
+.hs .pin{display:flex;flex-direction:column;justify-content:center;gap:28px;padding-top:80px}
+.hs-head{padding-inline:var(--gutter);display:flex;justify-content:space-between;align-items:end;gap:24px;flex-wrap:wrap}
+.hs-head h2{font-size:clamp(36px,5vw,64px);line-height:1}
+.hs-head p{color:rgba(238,240,233,.75);max-width:38ch;font-size:15.5px}
+.track{display:flex;gap:clamp(16px,2.4vw,32px);padding-inline:var(--gutter);will-change:transform}
+.card{flex:0 0 min(78vw,420px);background:var(--mata);border:1px solid rgba(238,240,233,.1);display:flex;flex-direction:column}
+.card .body{padding:18px 20px 20px;display:grid;gap:10px}
+.card h3{font-size:30px}
+.card .spec{display:flex;flex-wrap:wrap;gap:6px 16px;color:var(--liquen)}
+.card ul{margin:0;padding:0;list-style:none;display:grid;gap:4px;font-size:15px;color:rgba(238,240,233,.85)}
+.rating{color:var(--claro);opacity:.85}
+.card ul li::before{content:"·";color:var(--ipe);margin-right:8px}
+.price{display:flex;justify-content:space-between;align-items:center;gap:12px;border-top:1px solid rgba(238,240,233,.12);padding-top:14px;margin-top:4px}
+.price b{font-family:var(--display);font-weight:400;font-size:26px;font-variant-numeric:tabular-nums}
+.price small{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--liquen)}
+.ghost{background:none;border:1px solid rgba(238,240,233,.35);color:var(--claro);border-radius:99px;padding:9px 14px;font:inherit;font-size:14px;cursor:pointer;white-space:nowrap}
+.ghost:hover{border-color:var(--ipe);color:var(--ipe)}
+.end{flex:0 0 min(60vw,280px);display:flex;flex-direction:column;justify-content:center;gap:16px;color:rgba(238,240,233,.8)}
+.end p{font-family:var(--display);font-size:28px;line-height:1.1;color:var(--claro)}
+
+/* guests */
+.quotes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(24px,4vw,56px);margin-top:48px}
+.quotes figure{margin:0;display:flex;flex-direction:column;gap:18px;min-width:0}
+.quotes blockquote{margin:0;font-family:var(--display);font-size:clamp(22px,2.2vw,28px);line-height:1.18}
+.quotes figcaption{color:var(--liquen)}
+.score{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
+.score b{font-family:var(--display);font-weight:400;font-size:clamp(72px,10vw,128px);line-height:.9;color:var(--ipe);font-variant-numeric:tabular-nums}
+.score h2{font-size:clamp(30px,4vw,48px);max-width:14ch}
+
+/* route */
+.route{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:clamp(32px,5vw,72px);align-items:start}
+.route h2{font-size:clamp(36px,5vw,64px);line-height:1.02;margin-bottom:20px}
+.map{width:100%;height:auto;display:block;max-width:100%}
+table{color:inherit}
+table.dist{width:100%;border-collapse:collapse;margin:28px 0 8px;font-variant-numeric:tabular-nums}
+.dist th,.dist td{text-align:left;padding:10px 0;border-bottom:1px solid rgba(22,32,26,.16);font-size:15.5px}
+.dist th{font-family:var(--mono);font-weight:400;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#5d6b55}
+.dist td:not(:first-child),.dist th:not(:first-child){text-align:right}
+details{border-bottom:1px solid rgba(22,32,26,.16)}
+summary{cursor:pointer;padding:16px 0;font-family:var(--display);font-size:22px;list-style:none;display:flex;justify-content:space-between;gap:16px}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";font-family:var(--body);color:#5d6b55}
+details[open] summary::after{content:"–"}
+details p{padding-bottom:18px;color:#3d4838;max-width:56ch;font-size:15.5px}
+
+/* booking */
+.book .pin{display:grid;align-items:center;padding:96px var(--gutter) calc(env(safe-area-inset-bottom,0px) + 88px);overflow:auto}
+.panel{max-width:1160px;width:100%;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,440px);gap:clamp(28px,5vw,80px);align-items:end}
+.panel h2{font-size:clamp(44px,8vw,112px);line-height:.92;text-shadow:0 2px 30px rgba(0,0,0,.35)}
+.panel .lede{margin-top:18px;max-width:34ch;color:rgba(238,240,233,.9);text-shadow:0 1px 16px rgba(0,0,0,.5)}
+form{background:rgba(14,20,16,.82);backdrop-filter:blur(10px);border:1px solid rgba(238,240,233,.14);padding:22px;display:grid;gap:14px;border-radius:4px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+label{display:grid;gap:6px;font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--liquen)}
+input,select{width:100%;background:transparent;border:1px solid rgba(238,240,233,.24);border-radius:3px;color:var(--claro);font-family:var(--body);font-size:16px;padding:10px 10px;letter-spacing:0;text-transform:none}
+select option{background:var(--mata)}
+.est{font-size:15px;color:rgba(238,240,233,.85);font-variant-numeric:tabular-nums;border-top:1px solid rgba(238,240,233,.12);padding-top:12px}
+.est b{font-family:var(--display);font-weight:400;font-size:24px;color:var(--claro)}
+.check{display:flex;align-items:center;gap:10px;font-family:var(--body);font-size:14.5px;letter-spacing:0;text-transform:none;color:rgba(238,240,233,.88);cursor:pointer}
+.check input{width:18px;height:18px;accent-color:var(--ipe);margin:0;flex:none}
+.fine a{color:var(--claro)}
+form .btn{justify-content:center;width:100%;padding:14px}
+.fine{font-size:13px;color:var(--liquen)}
+
+footer{background:var(--mata);border-top:1px solid rgba(238,240,233,.1);position:relative;z-index:1}
+footer .wrap{padding-block:48px calc(env(safe-area-inset-bottom,0px) + 96px);display:flex;justify-content:space-between;flex-wrap:wrap;gap:24px;color:var(--liquen);font-size:14px}
+footer .brand span{color:var(--claro)}
+
+.mbar{display:none}
+@media (max-width:760px){
+  .chap .name{display:none}
+  .top .btn{display:none}
+  .mbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:45;padding:12px var(--gutter) calc(env(safe-area-inset-bottom,0px) + 12px);background:linear-gradient(transparent,rgba(10,14,11,.8) 40%);gap:12px;align-items:center}
+  .mbar .btn{flex:1;justify-content:center}
+  .proto{display:none}
+  .grid>*{grid-column:auto/span 6!important}
+  .g1,.g4,.note{grid-column:1/13!important}
+  .fig{flex-direction:column;gap:2px}
+  .fig span:last-child{text-align:left}
+  .note{grid-template-columns:1fr}
+  .quotes{grid-template-columns:1fr}
+  .route{grid-template-columns:1fr}
+  .panel{grid-template-columns:1fr}
+  .tc .line{display:none}
+  .tc{bottom:calc(env(safe-area-inset-bottom,0px) + 84px)}
+}
+@media (prefers-reduced-motion:reduce){
+  .hint i{animation:none}
+  .cap{opacity:1;transform:none;position:relative;left:auto;right:auto;margin-bottom:40px}
+  .scrub .pin{position:relative;height:auto;min-height:100svh;display:flex;flex-direction:column;justify-content:center;padding:120px var(--gutter)}
+  .scrub .cap{padding:0}
+  .manifesto .w{opacity:1}
+  .scrub{height:auto!important}
+  .hs .pin{position:relative;height:auto;padding-block:96px}
+  .track{flex-wrap:wrap;transform:none!important}
+}
+</style>
+
+<meta name="description" content="Duas cabanas de vidro na mata de Barra de Guaratiba, Rio de Janeiro, a 10 minutos do Recreio. Piscina aquecida, cinema ao ar livre e privacidade total para casais.">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"LodgingBusiness","name":"Cabanas Meio do Mato","description":"Cabanas de vidro na mata para casais, com piscina aquecida privativa e cinema ao ar livre.","address":{"@type":"PostalAddress","addressLocality":"Barra de Guaratiba","addressRegion":"RJ","addressCountry":"BR"},"telephone":"+55 21 96795-7067","url":"https://cabanasmeiodomato.com.br/","sameAs":["https://www.instagram.com/cabanas_meiodomato/"],"petsAllowed":true,"checkinTime":"15:00","checkoutTime":"12:00","amenityFeature":[{"@type":"LocationFeatureSpecification","name":"Piscina aquecida privativa","value":true},{"@type":"LocationFeatureSpecification","name":"Cinema ao ar livre 106 polegadas","value":true},{"@type":"LocationFeatureSpecification","name":"Wi-Fi","value":true}]}
+</script>
+
+</head>
+<body>
+<canvas id="stage" aria-hidden="true"></canvas>
+<div class="grain" id="grain" aria-hidden="true"></div>
+<div class="bar" id="bar"></div>
+
+<header class="top" id="top">
+  <a class="brand" href="#abertura"><small>CABANAS</small><span>Meio do Mato</span></a>
+  <div class="chap">
+    <button type="button" id="openIndex" aria-haspopup="dialog"><span class="mono num" id="chapNum">01/09</span><span class="mono name" id="chapName">Abertura</span><span class="mono" aria-hidden="true">☰</span></button>
+  </div>
+  <a class="btn" href="#reserva" data-ev="ver_datas">Ver datas</a>
+</header>
+
+<nav class="index" id="index" hidden aria-label="Capítulos">
+  <button type="button" class="close" id="closeIndex">Fechar</button>
+  <ol id="indexList"></ol>
+</nav>
+
+<div class="proto">Preço a confirmar</div>
+
+<main>
+  <section class="hero" id="abertura" data-name="Abertura" data-tone="dark">
+    <div class="meta mono"><span>Barra de Guaratiba · RJ</span><span>2 cabanas de vidro</span><span>Só para casais</span></div>
+    <h1>Role para chegar.</h1>
+    <p class="lede">Duas cabanas de vidro escondidas na mata, a 10 minutos do Recreio. Piscina aquecida, cinema ao ar livre e ninguém por perto. O caminho começa aqui embaixo.</p>
+    <div class="hint mono"><i></i>Role devagar</div>
+  </section>
+
+  <section class="scrub" id="chegada" data-name="A chegada" data-tone="dark" data-a="0" data-b="18" style="height:440vh">
+    <div class="pin">
+      <div class="cap" data-in=".04" data-out=".26" style="top:22%"><span class="mono">Registro 01 · 15h50 · Barra de Guaratiba</span><h2>Dez minutos depois do Recreio, a placa no bambu.</h2><p>Condomínio fechado. Daqui para cima, é mata.</p></div>
+      <div class="cap r" data-in=".3" data-out=".52" style="top:30%"><span class="mono">Registro 02 · 16h00 · Check-in</span><h2>A porta abre com o seu código.</h2><p>Sem recepção e sem fila.</p></div>
+      <div class="cap" data-in=".56" data-out=".78" style="top:18%"><span class="mono">Registro 03 · 16h04 · O deck</span><h2>Piscina de vidro, aquecida, só de vocês.</h2></div>
+      <div class="cap r" data-in=".82" data-out="1.1" style="top:24%"><span class="mono">Registro 04 · 16h10 · Chegou</span><h2>É toda sua.</h2><p>Nenhum vizinho à vista. Só a cabana, a mata e o barulho dela.</p></div>
+      <div class="tc mono"><span>Reel</span><b class="tcv">00:00</b><span class="line"><i></i></span><span>00:52</span></div>
+    </div>
+  </section>
+
+  <section class="paper manifesto" id="manifesto" data-name="Manifesto" data-tone="light">
+    <div class="wrap">
+      <div class="eyebrow mono"><b>03</b><span>Manifesto</span></div>
+      <p class="big" id="manifestoText">Paredes de vidro para a mata entrar. Água quente para a noite não acabar. Um teto transparente para dormir contando estrelas. A cidade continua ali, a dez minutos. Vocês é que não estão mais nela.</p>
+      <div class="sign mono"><span>Cabanas Meio do Mato</span><span>@cabanas_meiodomato</span></div>
+    </div>
+  </section>
+
+  <section class="paper interior" id="interior" data-name="Dentro da cabana" data-tone="light">
+    <div class="wrap" style="padding-top:0">
+      <div class="eyebrow mono"><b>04</b><span>Dentro da cabana</span></div>
+      <h2>Vidro, água quente e mata dos quatro lados.</h2>
+      <div class="grid">
+        <figure class="g1" style="margin:0"><div class="ph"><img src="fotos/aurora-IMG_1115.webp" alt="Piscina de vidro aquecida com degraus iluminados, cercada de pedras e mata" loading="lazy" decoding="async"></div><figcaption class="fig"><span>Fig. 01</span><span>Piscina de vidro aquecida, o ano inteiro</span></figcaption></figure>
+        <figure class="g2" style="margin:0"><div class="ph"><img src="fotos/aurora-teto.webp" alt="Quarto da Aurora com teto de vidro e cama de casal" loading="lazy" decoding="async"></div><figcaption class="fig"><span>Fig. 02</span><span>Teto de vidro da Aurora</span></figcaption></figure>
+        <figure class="g3" style="margin:0"><div class="ph"><img src="fotos/concept-IMG_0870.webp" alt="Banheiro com cuba de pedra sobre bancada de madeira e espelho redondo iluminado" loading="lazy" decoding="async"></div><figcaption class="fig"><span>Fig. 03</span><span>Cuba de pedra e luz baixa</span></figcaption></figure>
+        <figure class="g4" style="margin:0"><div class="ph"><img src="fotos/concept-noite.webp" alt="Deck à noite com o telão aceso, a piscina iluminada e o fire pit" loading="lazy" decoding="async"></div><figcaption class="fig"><span>Fig. 04</span><span>Cinema de 106" e fire pit, à noite</span></figcaption></figure>
+        <figure class="g5" style="margin:0"><div class="ph"><img src="fotos/aurora-IMG_1138.webp" alt="Pernas de uma hóspede na rede suspensa sobre a piscina" loading="lazy" decoding="async"></div><figcaption class="fig"><span>Fig. 05</span><span>Rede suspensa sobre a água</span></figcaption></figure>
+        <figure class="g6" style="margin:0"><div class="ph"><img src="fotos/concept-IMG_0938.webp" alt="Cozinha com bancada de cimento queimado e vista para a mata" loading="lazy" decoding="async"></div><figcaption class="fig"><span>Fig. 06</span><span>Cozinha com Nespresso e air fryer</span></figcaption></figure>
+        <div class="note">
+          <div><h3>Privacidade</h3><p>Duas cabanas independentes num condomínio fechado. Entrada por fechadura eletrônica e nenhuma recepção no caminho.</p></div>
+          <div><h3>Conforto</h3><p>Piscina aquecida, ar-condicionado, cozinha com Nespresso e air fryer, Wi‑Fi e tudo no comando de voz pela Alexa.</p></div>
+          <div><h3>Mata de verdade</h3><p>A floresta é preservada e tem bicho. Por isso a regra da casa: portas e janelas fechadas quando sair.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="hs" id="cabanas" data-name="As cabanas" data-tone="dark">
+    <div class="pin">
+      <div class="hs-head">
+        <div><div class="eyebrow mono" style="margin-bottom:14px"><b>05</b><span>As cabanas</span></div><h2>Duas cabanas. Escolha a sua.</h2></div>
+        <p>Para até duas pessoas, sem café da manhã incluso. Pet é bem-vindo com taxa de R$ 200. <span class="tag">Preço a confirmar</span></p>
+      </div>
+      <div class="track" id="track">
+        <article class="card"><div class="media"><img src="fotos/concept-fachada.webp" alt="Cabana Concept: fachada em A com paredes de vidro, entre palmeiras" loading="lazy" decoding="async"></div><div class="body"><h3>Cabana Concept</h3><div class="spec mono"><span>Até 2 pessoas</span><span>Check-in 16h · saída 12h</span></div><ul><li>Piscina de vidro aquecida</li><li>Cinema 106" de frente para a piscina</li><li>Fire pit e rede suspensa</li></ul><div class="rating mono">★ 4,97 · 92 avaliações no Airbnb</div><div class="price"><div><small>A partir de · por noite</small><b>R$ 1.440</b></div><button type="button" class="ghost" data-pick="concept">Ver datas</button></div></div></article>
+        <article class="card"><div class="media"><img src="fotos/aurora-fachada.webp" alt="Cabana Aurora ao entardecer, com a piscina aquecida no deck" loading="lazy" decoding="async"></div><div class="body"><h3>Cabana Aurora</h3><div class="spec mono"><span>Até 2 pessoas</span><span>Check-in 15h · saída 11h</span></div><ul><li>Teto de vidro para dormir vendo o céu</li><li>Piscina de vidro aquecida</li><li>Cinema 106", fire pit e rede</li></ul><div class="rating mono">★ 4,98 · 101 avaliações no Airbnb</div><div class="price"><div><small>A partir de · por noite</small><b>R$ 1.440</b></div><button type="button" class="ghost" data-pick="aurora">Ver datas</button></div></div></article>
+        <div class="end"><p>São só duas. Os fins de semana somem primeiro.</p><a class="btn" href="#reserva" data-ev="ver_datas" style="align-self:flex-start">Ver datas livres</a></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="scrub" id="detalhes" data-name="Os detalhes" data-tone="dark" data-a="18" data-b="40" style="height:420vh">
+    <div class="pin">
+      <div class="cap" data-in=".05" data-out=".32" style="top:20%"><span class="mono">Registro 05 · 18h30 · Teto de vidro</span><h2>Tem gente que vem só para fazer a pergunta.</h2></div>
+      <div class="cap r" data-in=".38" data-out=".66" style="top:26%"><span class="mono">Registro 06 · 19h00 · Madeira e pedra</span><h2>Toalha dobrada, luz baixa, nada fora do lugar.</h2></div>
+      <div class="cap" data-in=".72" data-out="1.1" style="top:16%"><span class="mono">Registro 07 · 20h10 · A água</span><h2>E a piscina continua quente lá fora.</h2><p>De noite, o telão de 106" acende de frente para ela.</p></div>
+      <div class="tc mono"><span>Reel</span><b class="tcv">00:13</b><span class="line"><i></i></span><span>00:52</span></div>
+    </div>
+  </section>
+
+  <section class="forest" id="quem-ja-foi" data-name="Quem já foi" data-tone="dark">
+    <div class="wrap">
+      <div class="eyebrow mono"><b>07</b><span>Quem já foi</span></div>
+      <div class="score"><b>4,97</b><h2>de nota em 193 avaliações no Airbnb.</h2></div>
+      <p class="mono" style="color:var(--liquen);margin-top:18px;display:flex;flex-wrap:wrap;gap:6px 20px"><span>Aurora 4,98 · 101 avaliações</span><span>Concept 4,97 · 92 avaliações</span><span>Anfitrião Superhost</span></p>
+      <div class="quotes">
+        <figure><blockquote>“É incrível dormir olhando para as estrelas.”</blockquote><figcaption class="mono">Hóspede da Aurora · 5 estrelas</figcaption></figure>
+        <figure><blockquote>“Fomos comemorar nossos 15 anos de casamento.”</blockquote><figcaption class="mono">Hóspede · 5 estrelas</figcaption></figure>
+        <figure><blockquote>“Telão de frente pra piscina. Incrível.”</blockquote><figcaption class="mono">Hóspede · 5 estrelas</figcaption></figure>
+      </div>
+      <p class="fine" style="margin-top:36px;max-width:60ch">Trechos de avaliações publicadas no site oficial. Notas do Airbnb em outubro de 2026. <span class="tag">Depoimentos completos com nome: pendentes</span></p>
+    </div>
+  </section>
+
+  <section class="paper" id="como-chegar" data-name="Como chegar" data-tone="light">
+    <div class="wrap">
+      <div class="eyebrow mono"><b>08</b><span>Como chegar</span></div>
+      <div class="route">
+        <div>
+          <svg class="map" id="map" viewBox="0 0 600 460" role="img" aria-label="Mapa ilustrativo: do Recreio até as cabanas em Barra de Guaratiba, com a subida final dentro do condomínio">
+            <g fill="none" stroke="#b9c1b0" stroke-width="1">
+              <path d="M0 380 C120 340 180 390 300 350 S480 300 600 330"/>
+              <path d="M0 300 C140 250 200 300 330 260 S500 210 600 240"/>
+              <path d="M0 220 C100 180 220 220 340 170 S520 130 600 150"/>
+              <path d="M0 140 C140 110 240 140 360 100 S520 60 600 80"/>
+            </g>
+            <path id="routeAsphalt" d="M40 420 C140 400 190 330 260 300 S360 250 400 220" fill="none" stroke="#16201a" stroke-width="2.5"/>
+            <path id="routeDirt" d="M400 220 C430 195 420 160 455 140 S520 110 520 82" fill="none" stroke="#16201a" stroke-width="2.5" stroke-dasharray="2 7" stroke-linecap="round"/>
+            <circle cx="40" cy="420" r="5" fill="#16201a"/>
+            <circle cx="400" cy="220" r="4" fill="#dde2d7" stroke="#16201a" stroke-width="2"/>
+            <g transform="translate(520 82)"><circle r="16" fill="#e3b23c" opacity=".3"/><circle r="7" fill="#e3b23c" stroke="#16201a" stroke-width="2"/></g>
+            <g font-family="DM Mono, monospace" font-size="12" fill="#3d4838" letter-spacing="1">
+              <text x="56" y="424">RECREIO</text>
+              <text x="250" y="244">PORTÃO DO CONDOMÍNIO</text>
+              <text x="410" y="52">AS CABANAS</text>
+              <text x="458" y="178">SUBIDA ÍNGREME</text>
+              <text x="150" y="350">BARRA DE GUARATIBA</text>
+            </g>
+          </svg>
+        </div>
+        <div>
+          <h2>Longe o bastante para desligar. Perto o bastante para voltar sempre.</h2>
+          <p style="color:#3d4838;max-width:42ch">As cabanas ficam num condomínio fechado em Barra de Guaratiba, zona oeste do Rio. O endereço exato e o código da porta chegam com a confirmação da reserva.</p>
+          <table class="dist">
+            <thead><tr><th>Saindo de</th><th>De carro</th></tr></thead>
+            <tbody>
+              <tr><td>Recreio dos Bandeirantes</td><td>10 min</td></tr>
+              <tr><td>Barra da Tijuca</td><td><span class="tag">a confirmar</span></td></tr>
+              <tr><td>Aeroporto Santos Dumont</td><td><span class="tag">a confirmar</span></td></tr>
+            </tbody>
+          </table>
+          <div style="height:20px"></div>
+          <details><summary>Qualquer carro sobe?</summary><p>A subida final é íngreme. Venha com os pneus em bom estado. Se preferir não dirigir, sugerimos Uber Black.</p></details>
+          <details><summary>Posso levar meu pet?</summary><p>Pode. Cobramos uma taxa de higienização de R$ 200 por estadia.</p></details>
+          <details><summary>Crianças podem ir?</summary><p>Não. Por segurança, as cabanas não recebem crianças nem bebês. São pensadas para casais.</p></details>
+          <details><summary>Qual o horário de entrada e saída?</summary><p>Concept: entrada às 16h e saída às 12h. Aurora: entrada às 15h e saída às 11h. A porta abre por fechadura eletrônica, sem recepção.</p></details>
+          <details><summary>Tem café da manhã?</summary><p>Não servimos refeições. A cozinha tem Nespresso, air fryer e o necessário para preparar o seu café.</p></details>
+          <details><summary>Tem Wi‑Fi?</summary><p>Tem, nas duas cabanas, além de smart TV e automação por Alexa.</p></details>
+          <details><summary>O vidro não deixa claro demais de manhã?</summary><p>O dia entra cedo, principalmente na Aurora, que tem teto de vidro. Se tiver sono leve, traga uma máscara de dormir.</p></details>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="scrub book" id="reserva" data-name="Reserve" data-tone="dark" data-a="40" data-b="52" style="height:240vh">
+    <div class="pin">
+      <div class="panel">
+        <div>
+          <span class="mono" style="color:var(--ipe)">Registro 08 · Mesa posta, vista para o vale</span>
+          <h2 style="margin-top:12px">Sua vez de acordar aqui.</h2>
+          <p class="lede">Escolha as datas e a cabana. A mensagem já vai pronta para o WhatsApp e a gente responde com a disponibilidade.</p>
+        </div>
+        <form id="bookForm" novalidate>
+          <div class="row">
+            <label for="checkin">Chegada<input type="date" id="checkin" required></label>
+            <label for="checkout">Saída<input type="date" id="checkout" required></label>
+          </div>
+          <div class="row">
+            <label for="cabana">Cabana<select id="cabana"><option value="aurora">Cabana Aurora</option><option value="concept">Cabana Concept</option></select></label>
+            <label for="hospedes">Hóspedes<select id="hospedes"><option>1</option><option selected>2</option></select></label>
+          </div>
+          <label class="check" for="pet"><input type="checkbox" id="pet"> Vou levar meu pet (taxa de R$ 200)</label>
+          <div class="est" id="est" aria-live="polite"></div>
+          <a class="btn" id="waBtn" href="https://wa.me/5521967957067" target="_blank" rel="noopener">Pedir reserva no WhatsApp</a>
+          <p class="fine">WhatsApp (21) 96795-7067. Prefere o Airbnb? <a id="abLink" href="https://www.airbnb.com.br/rooms/1597457829082281356" target="_blank" rel="noopener">Abrir a cabana no Airbnb</a>.</p>
+          <p class="fine">Estimativa com preço de referência, a confirmar. No futuro, este quadro vira o motor de reservas do próprio site.</p>
+        </form>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <img src="fotos/logo-31.webp" alt="Logo Cabanas Meio do Mato" width="88" height="88" style="border-radius:50%">
+    <div style="display:grid;gap:6px">
+      <span>Barra de Guaratiba, RJ · refúgio para casais em meio à mata</span>
+      <a href="https://www.instagram.com/cabanas_meiodomato/" target="_blank" rel="noopener">Instagram @cabanas_meiodomato</a>
+      <span>WhatsApp (21) 96795-7067</span>
+    </div>
+    <div style="display:grid;gap:6px">
+      <span>Do mesmo anfitrião da Casa M5</span>
+      <span>Políticas de reserva e cancelamento: a publicar</span>
+      <span>Fotos e vídeo: @cabanas_meiodomato</span>
+    </div>
+  </div>
+</footer>
+
+<div class="mbar"><a class="btn" href="#reserva" data-ev="ver_datas">Ver datas</a></div>
+
+
+<script>
+/* Para usar o reel real: coloque o caminho do vídeo aqui (MP4 exportado com keyframe em todo quadro).
+   Ex.: const REEL = 'reel.mp4'; A cena ilustrada é usada enquanto ele não existir. */
+const REEL = 'reel.mp4';
+const REEL_LEN = 52.33; // duração do reel em segundos; data-a/data-b das seções estão em segundos do reel
+const POSTER = 'poster.jpg';
+
+document.documentElement.lang='pt-BR';
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
+const sstep=x=>x*x*(3-2*x);
+const smooth=(a,b,x)=>sstep(clamp((x-a)/(b-a)));
+const ease=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
+const hex=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
+const mix=(a,b,t)=>a.map((v,i)=>v+(b[i]-v)*t);
+const rgb=(c,a=1)=>`rgba(${c[0]|0},${c[1]|0},${c[2]|0},${a})`;
+function key(fr,T){
+  if(T<=fr[0][0]) return fr[0][1];
+  for(let i=1;i<fr.length;i++){ if(T<=fr[i][0]){ const [t0,v0]=fr[i-1],[t1,v1]=fr[i]; const k=sstep((T-t0)/(t1-t0)); return Array.isArray(v0)?mix(v0,v1,k):v0+(v1-v0)*k; } }
+  return fr[fr.length-1][1];
+}
+function rng(s){return()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+
+const SKY_TOP=[[0,hex('#36565c')],[9,hex('#34405a')],[15,hex('#151c30')],[20,hex('#05070d')],[25,hex('#1b2236')],[30,hex('#6f90a5')]];
+const SKY_HOR=[[0,hex('#e9bb72')],[9,hex('#e68d58')],[15,hex('#4a5270')],[20,hex('#121823')],[25,hex('#a08c98')],[30,hex('#f0d3a3')]];
+const LIGHT=[[0,1],[9,.75],[15,.3],[20,.04],[25,.22],[30,.85]];
+const FOG=[[0,.16],[12,.2],[20,.1],[26,.5],[30,.38]];
+
+const R=rng(11), TREES=[];
+for(let i=0;i<150;i++){
+  const side=R()<.5?-1:1; let x=side*(.34+R()*2.4); const z=.7+R()*15;
+  if(z>11&&z<15.2&&Math.abs(x)<1.9) x=side*(1.9+R()*1.4);
+  const h=.9+R()*1.2, w=.45+R()*.6, kind=R()<.3?'a':'c', blobs=[];
+  for(let k=0;k<5;k++) blobs.push({dx:(R()-.5)*w*.9,dy:.12+R()*h*.38,r:w*(.2+R()*.18)});
+  TREES.push({x,z,h,w,kind,blobs});
+}
+const SR=rng(5), STARS=[]; for(let i=0;i<180;i++) STARS.push({x:SR(),y:SR()*.9,r:SR()<.9?1:2,a:.4+SR()*.6,ph:SR()*6.3,sp:.5+SR()*2});
+const CABIN_Z=13.3, FIRE={x:-1.35,z:12.3}, POOL={x0:-.95,x1:-.2,z0:12.55,z1:12.95}, SCREEN={x0:.75,x1:1.45,z:12.85};
+
+function ridge(c,w,h,hy,amp,p,col,camZ){
+  c.fillStyle=rgb(col); c.beginPath(); c.moveTo(0,h);
+  const S=Math.max(w,h);
+  for(let x=0;x<=w+8;x+=8){ const u=x/S*1000; const n=.5+.5*(Math.sin(u*.004+p)*.6+Math.sin(u*.011+p*2)*.3+Math.sin(u*.029+p*3)*.1); c.lineTo(x,hy-h*amp*(1+camZ*.025)*n); }
+  c.lineTo(w,h); c.closePath(); c.fill();
+}
+
+function render(c,w,h,T,now){
+  const top=key(SKY_TOP,T), hor=key(SKY_HOR,T), L=key(LIGHT,T), fogA=key(FOG,T);
+  const hy=h*.6, f=Math.max(w,h)*.55, camH=.55, camZ=9.7*ease(clamp(T/12.5));
+  let g=c.createLinearGradient(0,0,0,hy); g.addColorStop(0,rgb(top)); g.addColorStop(1,rgb(hor)); c.fillStyle=g; c.fillRect(0,0,w,hy+2);
+  const sa=smooth(15,20,T)*(1-smooth(24.5,28.5,T));
+  if(sa>.01) for(const s of STARS){ const tw=.65+.35*Math.sin(now*.0015*s.sp+s.ph); c.fillStyle=`rgba(236,240,255,${sa*s.a*tw})`; c.fillRect(s.x*w,s.y*hy*.95,s.r,s.r); }
+  const sun=(sx,sy,a)=>{ if(a<=.01) return; const rr=h*.38; const sg=c.createRadialGradient(sx,sy,0,sx,sy,rr); sg.addColorStop(0,`rgba(255,214,150,${.55*a})`); sg.addColorStop(1,'rgba(255,214,150,0)'); c.fillStyle=sg; c.fillRect(sx-rr,sy-rr,rr*2,rr*2); c.fillStyle=`rgba(255,232,186,${a})`; c.beginPath(); c.arc(sx,sy,Math.max(10,h*.032),0,7); c.fill(); };
+  sun(w*.68, hy-h*.17+smooth(0,12.5,T)*h*.19, 1-smooth(10,13.5,T));
+  sun(w*.3, hy+h*.05-smooth(25,30,T)*h*.13, smooth(25,28,T));
+  const dark=mix(hex('#070b08'),hex('#22311f'),L);
+  ridge(c,w,h,hy,.16,1.3,mix(hor,dark,.32),camZ*.4);
+  ridge(c,w,h,hy+2,.09,4.1,mix(hor,dark,.58),camZ*.7);
+  g=c.createLinearGradient(0,hy,0,h); g.addColorStop(0,rgb(mix(hor,dark,.7))); g.addColorStop(1,rgb(mix(dark,[0,0,0],.3))); c.fillStyle=g; c.fillRect(0,hy,w,h-hy);
+  const P=(x,d)=>w/2+x/d*f, GY=d=>hy+camH/d*f;
+  // road
+  const dFar=Math.max(.35,CABIN_Z-camZ-.2), dNear=.22;
+  const dirt=mix(hex('#0f0d0a'),hex('#7a6448'),L);
+  c.fillStyle=rgb(mix(dirt,hor,.15)); c.beginPath();
+  c.moveTo(P(-.3,dNear),GY(dNear)); c.lineTo(P(-.17,dFar),GY(dFar)); c.lineTo(P(.17,dFar),GY(dFar)); c.lineTo(P(.3,dNear),GY(dNear)); c.closePath(); c.fill();
+  // objects
+  const near=mix(hex('#060a07'),hex('#1d2b1f'),L), haze=mix(hor,near,.5);
+  const items=[];
+  for(const t of TREES){ const d=t.z-camZ; if(d>.2) items.push({d,t}); }
+  items.push({d:CABIN_Z-camZ,cabin:true}); items.push({d:FIRE.z-camZ,fire:true}); items.push({d:POOL.z1-camZ,pool:true}); items.push({d:SCREEN.z-camZ,screen:true});
+  items.sort((a,b)=>b.d-a.d);
+  const glow=smooth(8,13,T)*(1-.65*smooth(26,30,T)), fire=smooth(14,17,T)*(1-smooth(24,27,T));
+  for(const it of items){
+    const d=it.d; if(d<=.2) continue;
+    const s=f/d, col=rgb(mix(near,haze,Math.pow(clamp(d/16),.7))), gy=GY(d);
+    if(it.cabin){
+      const sx=P(0,d), bw=.78*s, bh=.82*s;
+      if(glow>.01){ const rr=3*s; const hg=c.createRadialGradient(sx,gy-.4*s,0,sx,gy-.4*s,rr); hg.addColorStop(0,`rgba(255,176,96,${.36*glow})`); hg.addColorStop(1,'rgba(255,176,96,0)'); c.fillStyle=hg; c.fillRect(sx-rr,gy-.4*s-rr,rr*2,rr*2); }
+      const glass=mix(mix(hor,[255,255,255],.25),[255,190,110],glow);
+      c.fillStyle=rgb(glass,.22+.78*Math.max(glow,.4*L)); c.fillRect(sx-bw,gy-bh,bw*2,bh);
+      c.fillStyle=col; c.fillRect(sx-bw-.08*s,gy-bh-.07*s,bw*2+.16*s,.08*s); c.fillRect(sx-bw-.08*s,gy-.03*s,bw*2+.16*s,.05*s);
+      c.strokeStyle=col; c.lineWidth=Math.max(1,.022*s); c.beginPath();
+      for(let k=1;k<5;k++){ const xx=sx-bw+bw*2*k/5; c.moveTo(xx,gy-bh); c.lineTo(xx,gy); }
+      c.stroke();
+      if(glow>.05){ c.fillStyle=`rgba(40,26,14,${.5*glow})`; c.fillRect(sx-bw*.55,gy-bh*.28,bw*.7,bh*.18); }
+    } else if(it.pool){
+      const pg=smooth(12,16,T)*(1-.5*smooth(26,30,T));
+      const d0=POOL.z0-camZ, d1=POOL.z1-camZ; if(d0<=.25) continue;
+      const wc=mix(mix(hex('#2d4a4a'),hor,.35),hex('#7fe0e6'),pg);
+      c.fillStyle=rgb(mix(near,hex('#cfd6cc'),.18+.2*L)); c.beginPath(); c.moveTo(P(POOL.x0-.06,d1),GY(d1)); c.lineTo(P(POOL.x1+.06,d1),GY(d1)); c.lineTo(P(POOL.x1+.06,d0),GY(d0)); c.lineTo(P(POOL.x0-.06,d0),GY(d0)); c.closePath(); c.fill();
+      c.fillStyle=rgb(wc,.95); c.beginPath(); c.moveTo(P(POOL.x0,d1),GY(d1)-.01*s); c.lineTo(P(POOL.x1,d1),GY(d1)-.01*s); c.lineTo(P(POOL.x1,d0),GY(d0)); c.lineTo(P(POOL.x0,d0),GY(d0)); c.closePath(); c.fill();
+      if(pg>.05){ const cx=P((POOL.x0+POOL.x1)/2,d1), rr=1.1*s; const pgl=c.createRadialGradient(cx,GY(d1),0,cx,GY(d1),rr); pgl.addColorStop(0,`rgba(120,225,230,${.28*pg})`); pgl.addColorStop(1,'rgba(120,225,230,0)'); c.fillStyle=pgl; c.fillRect(cx-rr,GY(d1)-rr,rr*2,rr*2); }
+    } else if(it.screen){
+      const on=smooth(16,18.5,T)*(1-smooth(22.5,24.5,T));
+      const x0=P(SCREEN.x0,d), x1=P(SCREEN.x1,d), top=gy-.62*s, bot=gy-.22*s;
+      c.fillStyle=col; c.fillRect(x0+.02*s,bot,.025*s,gy-bot); c.fillRect(x1-.045*s,bot,.025*s,gy-bot);
+      c.fillStyle=rgb(mix(mix(near,hor,.4),hex('#bcd2e8'),on)); c.fillRect(x0,top,x1-x0,bot-top);
+      if(on>.05){ const cx=(x0+x1)/2, rr=1.4*s; const sg2=c.createRadialGradient(cx,(top+bot)/2,0,cx,(top+bot)/2,rr); sg2.addColorStop(0,`rgba(170,200,235,${.25*on})`); sg2.addColorStop(1,'rgba(170,200,235,0)'); c.fillStyle=sg2; c.fillRect(cx-rr,(top+bot)/2-rr,rr*2,rr*2); }
+    } else if(it.fire){
+      if(fire<=.01) continue;
+      const sx=P(FIRE.x,d), fl=.85+.15*Math.sin(now*.013)+.1*Math.sin(now*.031);
+      const rr=1.5*s; const fg=c.createRadialGradient(sx,gy,0,sx,gy,rr); fg.addColorStop(0,`rgba(255,150,60,${.5*fire*fl})`); fg.addColorStop(1,'rgba(255,150,60,0)'); c.fillStyle=fg; c.fillRect(sx-rr,gy-rr,rr*2,rr*2);
+      c.fillStyle=`rgba(255,196,110,${fire})`;
+      for(let k=-1;k<=1;k++){ const fh=(.16+.06*Math.sin(now*.02+k*2))*s*fl; c.beginPath(); c.moveTo(sx+k*.05*s-.04*s,gy); c.quadraticCurveTo(sx+k*.05*s,gy-fh*1.2,sx+k*.05*s+.01*s,gy-fh); c.lineTo(sx+k*.05*s+.04*s,gy); c.fill(); }
+    } else {
+      const t=it.t, sx=P(t.x,d); if(sx<-3*s||sx>w+3*s) continue;
+      c.globalAlpha=clamp((d-.45)/.9); c.fillStyle=col; const H=t.h*s;
+      if(t.kind==='a'){
+        c.fillRect(sx-.022*s,gy-H,.044*s,H);
+        for(let k=0;k<3;k++){ c.beginPath(); c.ellipse(sx,gy-H+k*.1*s,t.w*(1-k*.22)*s*.62,.055*s,0,0,7); c.fill(); }
+      } else {
+        c.fillRect(sx-.02*s,gy-H*.6,.04*s,H*.6);
+        for(const b of t.blobs){ c.beginPath(); c.arc(sx+b.dx*s,gy-H+b.dy*s,b.r*s,0,7); c.fill(); }
+      }
+      c.globalAlpha=1;
+    }
+  }
+  const fogC=mix(hor,[235,238,232],.35);
+  g=c.createLinearGradient(0,hy-h*.12,0,hy+h*.25); g.addColorStop(0,rgb(fogC,0)); g.addColorStop(.45,rgb(fogC,fogA)); g.addColorStop(1,rgb(fogC,0)); c.fillStyle=g; c.fillRect(0,hy-h*.12,w,h*.37);
+  const v=c.createRadialGradient(w/2,h*.55,Math.min(w,h)*.3,w/2,h*.55,Math.max(w,h)*.8); v.addColorStop(0,'rgba(0,0,0,0)'); v.addColorStop(1,'rgba(0,0,0,.5)'); c.fillStyle=v; c.fillRect(0,0,w,h);
+}
+
+/* stage */
+const cv=document.getElementById('stage'), ctx=cv.getContext('2d');
+let W=0,H=0;
+function size(){ const dpr=Math.min(2,devicePixelRatio||1); W=cv.clientWidth; H=cv.clientHeight; cv.width=W*dpr; cv.height=H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); dirty=true; }
+let video=null, poster=new Image(); poster.src=POSTER; poster.onload=()=>{dirty=true;};
+if(REEL){ video=document.createElement('video'); video.muted=true; video.playsInline=true; video.setAttribute('playsinline',''); video.preload='auto'; video.src=REEL;
+  ['loadeddata','seeked'].forEach(e=>video.addEventListener(e,()=>{dirty=true;}));
+  const wake=()=>{ video.play().then(()=>video.pause()).catch(()=>{}); removeEventListener('touchstart',wake); removeEventListener('pointerdown',wake); };
+  addEventListener('touchstart',wake,{passive:true}); addEventListener('pointerdown',wake,{passive:true}); }
+const tiny=document.createElement('canvas'); tiny.width=24; tiny.height=42; const tctx=tiny.getContext('2d');
+function cover(src,sw,sh){ const r=sw/sh; let dw=W,dh=H; if(r>W/H) dw=H*r; else dh=W/r; ctx.drawImage(src,(W-dw)/2,(H-dh)/2,dw,dh); }
+function paint(src,sw,sh){
+  if(W/H<=.85){ cover(src,sw,sh); }
+  else { tctx.drawImage(src,0,0,24,42); ctx.imageSmoothingEnabled=true; cover(tiny,24,42); ctx.fillStyle='rgba(10,14,11,.5)'; ctx.fillRect(0,0,W,H);
+    const ph=H, pw=H*sw/sh; ctx.drawImage(src,(W-pw)/2,0,pw,ph); }
+  const g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'rgba(10,14,11,.62)'); g.addColorStop(.5,'rgba(10,14,11,.22)'); g.addColorStop(1,'rgba(10,14,11,.7)'); ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+}
+function drawVideo(T){
+  if(video&&video.readyState>=2){
+    const want=Math.min((video.duration||REEL_LEN)-.05,Math.max(0,T));
+    if(!video.seeking&&Math.abs(video.currentTime-want)>.04) video.currentTime=want;
+    paint(video,video.videoWidth,video.videoHeight); return true;
+  }
+  if(poster.complete&&poster.naturalWidth){ paint(poster,poster.naturalWidth,poster.naturalHeight); return true; }
+  return false;
+}
+
+/* chapters */
+const chapters=[...document.querySelectorAll('main > section')];
+const scrubs=[...document.querySelectorAll('.scrub')];
+const caps=scrubs.map(s=>[...s.querySelectorAll('.cap')]);
+const idxList=document.getElementById('indexList');
+chapters.forEach((s,i)=>{ const li=document.createElement('li'); const a=document.createElement('a'); a.href='#'+s.id; a.innerHTML=`<span class="mono">${String(i+1).padStart(2,'0')}</span><span></span>`; a.lastChild.textContent=s.dataset.name; a.addEventListener('click',e=>{e.preventDefault(); closeIdx(); go(s.id);}); li.appendChild(a); idxList.appendChild(li); });
+const idx=document.getElementById('index');
+function closeIdx(){ idx.hidden=true; }
+document.getElementById('openIndex').addEventListener('click',()=>{ idx.hidden=false; idx.querySelector('a').focus(); });
+document.getElementById('closeIndex').addEventListener('click',closeIdx);
+addEventListener('keydown',e=>{ if(e.key==='Escape') closeIdx(); });
+function go(id){ const el=document.getElementById(id); if(!el) return; const y=el.getBoundingClientRect().top+scrollY+(id==='reserva'?el.offsetHeight-innerHeight:0); scrollTo({top:y,behavior:reduce?'auto':'smooth'}); }
+document.querySelectorAll('a[href^="#"]').forEach(a=>{ if(a.closest('#index')) return; a.addEventListener('click',e=>{ e.preventDefault(); go(a.getAttribute('href').slice(1)); }); });
+
+/* manifesto words */
+const mt=document.getElementById('manifestoText'); const words=mt.textContent.trim().split(/\s+/); mt.textContent='';
+const wEls=words.map((w,i)=>{ const s=document.createElement('span'); s.className='w'; s.textContent=w; mt.appendChild(s); if(i<words.length-1) mt.appendChild(document.createTextNode(' ')); return s; });
+
+/* cabins horizontal */
+const hs=document.getElementById('cabanas'), track=document.getElementById('track');
+function sizeHS(){ if(reduce||innerWidth<0){ hs.style.height=''; return; } const extra=Math.max(0,track.scrollWidth-innerWidth); hs.style.height=(innerHeight+extra)+'px'; hs.dataset.extra=extra; }
+
+/* card art */
+function cardArt(){ document.querySelectorAll('.media canvas').forEach(cc=>{ const c2=cc.getContext('2d'); render(c2,cc.width,cc.height,parseFloat(cc.dataset.t),1000); }); }
+
+
+/* analytics: GA4/GTM (dataLayer) e Meta Pixel, quando instalados */
+function logEv(ev,data={}){ try{ (window.dataLayer=window.dataLayer||[]).push({event:ev,...data}); if(window.fbq) fbq('trackCustom',ev,data); }catch(e){} }
+document.querySelectorAll('[data-ev]').forEach(el=>el.addEventListener('click',()=>logEv(el.dataset.ev,{origem:el.closest('.mbar')?'barra-inferior':(el.closest('header')?'cabecalho':(el.closest('section')||{}).id||'')})));
+
+/* booking */
+const fIn=document.getElementById('checkin'), fOut=document.getElementById('checkout'), fCab=document.getElementById('cabana'), fG=document.getElementById('hospedes'), est=document.getElementById('est'), wa=document.getElementById('waBtn');
+const WHATSAPP='5521967957067';
+const PRICES={concept:1440,aurora:1440}; // preço de referência (a confirmar com o anfitrião)
+const NAMES={concept:'Cabana Concept',aurora:'Cabana Aurora'};
+const AIRBNB={concept:'https://www.airbnb.com.br/rooms/1597493917478918893',aurora:'https://www.airbnb.com.br/rooms/1597457829082281356'};
+const PET_FEE=200; const fPet=document.getElementById('pet'), ab=document.getElementById('abLink');
+const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+(function(){ const d=new Date(); d.setDate(d.getDate()+((5-d.getDay()+7)%7||7)); fIn.value=iso(d); const e=new Date(d); e.setDate(d.getDate()+2); fOut.value=iso(e); fIn.min=iso(new Date()); })();
+const br=s=>{ const [y,m,d]=s.split('-'); return `${d}/${m}`; };
+const brl=n=>'R$ '+n.toLocaleString('pt-BR');
+function upd(){
+  const a=Date.parse(fIn.value), b=Date.parse(fOut.value); const n=Math.round((b-a)/864e5); const p=PRICES[fCab.value];
+  ab.href=AIRBNB[fCab.value];
+  if(!fIn.value||!fOut.value||!(n>0)){ est.innerHTML='Escolha uma saída depois da chegada.'; wa.setAttribute('aria-disabled','true'); return; }
+  wa.removeAttribute('aria-disabled');
+  const pet=fPet.checked?PET_FEE:0;
+  est.innerHTML=`${n} ${n>1?'noites':'noite'} × ${brl(p)}${pet?' + taxa pet '+brl(pet):''}<br><b>${brl(n*p+pet)}</b> estimado`;
+  const msg=`Olá! Quero reservar a ${NAMES[fCab.value]} de ${br(fIn.value)} a ${br(fOut.value)} (${n} ${n>1?'noites':'noite'}) para ${fG.value} ${fG.value==='1'?'pessoa':'pessoas'}${pet?', com meu pet':''}. Vi no site.`;
+  wa.href=`https://wa.me/${WHATSAPP}?text=`+encodeURIComponent(msg);
+  ab.href=AIRBNB[fCab.value];
+}
+[fIn,fOut,fCab,fG,fPet].forEach(el=>{el.addEventListener('input',upd);el.addEventListener('change',upd);});
+wa.addEventListener('click',e=>{ if(wa.getAttribute('aria-disabled')){ e.preventDefault(); return; } logEv('clique_whatsapp',{cabana:fCab.value}); });
+ab.addEventListener('click',()=>logEv('clique_airbnb',{cabana:fCab.value}));
+fIn.addEventListener('change',()=>{ if(Date.parse(fOut.value)<=Date.parse(fIn.value)){ const d=new Date(fIn.value+'T12:00'); d.setDate(d.getDate()+2); fOut.value=iso(d); } upd(); });
+document.getElementById('bookForm').addEventListener('submit',e=>e.preventDefault());
+document.querySelectorAll('[data-pick]').forEach(b=>b.addEventListener('click',()=>{ fCab.value=b.dataset.pick; upd(); logEv('ver_datas',{cabana:b.dataset.pick}); go('reserva'); }));
+upd();
+
+/* grain */
+(function(){ const n=document.createElement('canvas'); n.width=n.height=140; const x=n.getContext('2d'); const im=x.createImageData(140,140); for(let i=0;i<im.data.length;i+=4){ const v=Math.random()*255; im.data[i]=im.data[i+1]=im.data[i+2]=v; im.data[i+3]=255; } x.putImageData(im,0,0); document.getElementById('grain').style.backgroundImage=`url(${n.toDataURL()})`; })();
+
+/* scroll loop */
+const top_=document.getElementById('top'), bar=document.getElementById('bar'), cNum=document.getElementById('chapNum'), cName=document.getElementById('chapName');
+const mapEl=document.getElementById('map'), asp=document.getElementById('routeAsphalt'), dirtP=document.getElementById('routeDirt'); const aspLen=asp.getTotalLength(); if(!reduce){ asp.style.strokeDasharray=aspLen; }
+let target=0, cur=0, dirty=true, stageOn=true, lastChap=-1;
+function onScroll(){
+  const vh=innerHeight, y=scrollY;
+  bar.style.width=(clamp(y/(document.documentElement.scrollHeight-vh))*100)+'%';
+  let T=0; stageOn=false;
+  const heroR=chapters[0].getBoundingClientRect(); if(heroR.bottom>0) stageOn=true;
+  scrubs.forEach((s,i)=>{
+    const r=s.getBoundingClientRect(); const a=+s.dataset.a, b=+s.dataset.b;
+    const p=clamp(-r.top/Math.max(1,r.height-vh));
+    if(r.top<vh) T = reduce ? (a+b)/2 : a+p*(b-a);
+    if(r.top<vh&&r.bottom>0) stageOn=true;
+    if(!reduce) caps[i].forEach(c=>{ const i0=+c.dataset.in, o0=+c.dataset.out; const o=Math.min(smooth(i0,i0+.07,p),1-smooth(o0-.07,o0,p)); c.style.opacity=o; c.style.transform=`translateY(${(1-o)*16}px)`; });
+    const tcv=s.querySelector('.tcv'); if(tcv){ const tt=a+p*(b-a); tcv.textContent='00:'+String(Math.min(52,Math.floor(tt))).padStart(2,'0'); s.querySelector('.tc .line i').style.width=(tt/REEL_LEN*100)+'%'; }
+  });
+  target=T;
+  // manifesto
+  const mr=mt.getBoundingClientRect(); const mp=clamp((vh*.85-mr.top)/(mr.height+vh*.35));
+  if(!reduce) wEls.forEach((w,i)=>{ w.style.opacity=.2+.8*clamp(mp*wEls.length*1.1-i); });
+  // cabins
+  if(!reduce){ const hr=hs.getBoundingClientRect(); const ex=+hs.dataset.extra||0; const hp=clamp(-hr.top/Math.max(1,hr.height-vh)); track.style.transform=`translate3d(${-hp*ex}px,0,0)`; }
+  // rota no mapa
+  if(!reduce){ const r2=mapEl.getBoundingClientRect(); const rp=clamp((vh*.9-r2.top)/(r2.height+vh*.2)); asp.style.strokeDashoffset=aspLen*(1-clamp(rp/.65)); dirtP.style.opacity=clamp((rp-.6)/.2); }
+  // header
+  let ci=0; chapters.forEach((s,i)=>{ if(s.getBoundingClientRect().top<=vh*.4) ci=i; });
+  if(ci!==lastChap){ lastChap=ci; logEv('capitulo',{n:ci+1,nome:chapters[ci].dataset.name}); cNum.textContent=String(ci+1).padStart(2,'0')+'/'+String(chapters.length).padStart(2,'0'); cName.textContent=chapters[ci].dataset.name; }
+  let tone='dark'; for(const s of chapters){ const r=s.getBoundingClientRect(); if(r.top<=30&&r.bottom>30){ tone=s.dataset.tone; break; } }
+  top_.classList.toggle('light',tone==='light');
+}
+function frame(now){
+  cur = reduce ? target : cur+(target-cur)*.09;
+  if(Math.abs(target-cur)<.002) cur=target;
+  const live = stageOn && (dirty || cur!==target || (!video&&cur>14*REEL_LEN/30&&cur<27*REEL_LEN/30));
+  if(live){ if(!drawVideo(cur)) render(ctx,W,H,cur*30/REEL_LEN,now); dirty=false; }
+  requestAnimationFrame(frame);
+}
+addEventListener('scroll',onScroll,{passive:true});
+addEventListener('resize',()=>{ size(); sizeHS(); onScroll(); });
+size(); sizeHS(); cardArt(); onScroll(); cur=target;
+requestAnimationFrame(frame);
+if(document.fonts) document.fonts.ready.then(()=>{ sizeHS(); onScroll(); });
+</script>
+
+</body>
+</html>
